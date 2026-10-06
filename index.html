@@ -101,61 +101,75 @@
     </nav>
 
     <main>
-        <section id="uvod" class="story-card">
-            <h2>Vítejte v rodinné kronice rodu Faruzelů</h2>
-            <p>Tento web slouží jako živá paměť a dokumentace genealogického výzkumu rodu Faruzelů. Naleznete zde příběhy z minulosti, informace o předcích a rodinné fotografie.</p>
-        </section>
-
-        <section id="pribehy" class="story-card">
-            <h2>První kapitola: O rodu Faruzelů</h2>
-            <p>Sem brzy přibude první velký příběh, informace o původu příjmení nebo medailonek jednoho z předků...</p>
-        </section>
-
-        <section id="rodokmen" class="story-card">
+       <section id="rodokmen" class="story-card">
             <h2>Rodokmen rodu Faruzelů</h2>
             
-            <div class="tree-container">
-                <pre class="mermaid">
-               graph TD
-                    %% Horní řádek pro rodiče
-                    subgraph R1 [" "]
-                        direction LR
-                        Jan["<b>Jan Faruzel</b><br/>* cca 1709 Vendryně<br/>† 9. 2. 1799"]
-                        M_Rodice((" "))
-                        Zuzana["<b>Zuzana Folwarchny</b><br/>* cca 1710 Mistřovice<br/>† 16. 3. 1783"]
+            <div class="tree-wrapper">
+                <div class="family-tree">
+                    <!-- Rodiče -->
+                    <div class="parents-row">
+                        <div class="person-card">
+                            <div class="person-name">Jan Faruzel</div>
+                            <div class="person-dates">* cca 1709 Vendryně<br>† 9. 2. 1799</div>
+                        </div>
+                        <div class="marriage-node">
+                            <span>svatba 5. 5. 1733, Těšín</span>
+                        </div>
+                        <div class="person-card">
+                            <div class="person-name">Zuzana Folwarchny</div>
+                            <div class="person-dates">* cca 1710 Mistřovice<br>† 16. 3. 1783</div>
+                        </div>
+                    </div>
 
-                        Jan --- M_Rodice --- Zuzana
-                    end
+                    <!-- Spojovací čáry ke všem dětem -->
+                    <div class="connector-line"></div>
 
-                    %% Spojovací čára dolů ke všem dětem
-                    M_Rodice --> D1
-                    M_Rodice --> D2
-                    M_Rodice --> D3
-                    M_Rodice --> D4
-                    M_Rodice --> D5
-                    M_Rodice --> D6
-                    M_Rodice --> D7
-
-                    %% Spodní řádek pro všechny děti na stejné úrovni
-                    subgraph R2 [" "]
-                        direction LR
-                        D1["<b>Jan</b><br/>* 1733"]
-                        D2["<b>Zuzana</b><br/>* 1736"]
-                        D3["<b>Adam</b><br/>* 1738<br/>† 1794"]
-                        D4["<b>Marie</b><br/>* 1745"]
-                        D5["<b>Jiří</b><br/>* 1747"]
-                        D6["<b>Pavel</b><br/>* 1751<br/>† 1828"]
-                        D7["<b>Eva</b><br/>* 1753"]
-
-                        D1 ~~~ D2 ~~~ D3 ~~~ D4 ~~~ D5 ~~~ D6 ~~~ D7
-                    end
-
-                    %% Potlačení rámečků a stylů podgrafů
-                    style R1 fill:none,stroke:none;
-                    style R2 fill:none,stroke:none;
-                    style M_Rodice fill:#8b5a2b,stroke:#8b5a2b,width:6px,height:6px;
-                    classDef default fill:#f4efe6,stroke:#8b5a2b,stroke-width:2px;
-                </pre>
+                    <!-- Děti v jedné řadě -->
+                    <div class="children-row">
+                        <div class="child-item">
+                            <div class="person-card">
+                                <div class="person-name">Jan</div>
+                                <div class="person-dates">* 1733</div>
+                            </div>
+                        </div>
+                        <div class="child-item">
+                            <div class="person-card">
+                                <div class="person-name">Zuzana</div>
+                                <div class="person-dates">* 1736</div>
+                            </div>
+                        </div>
+                        <div class="child-item">
+                            <div class="person-card">
+                                <div class="person-name">Adam</div>
+                                <div class="person-dates">* 1738<br>† 1794</div>
+                            </div>
+                        </div>
+                        <div class="child-item">
+                            <div class="person-card">
+                                <div class="person-name">Marie</div>
+                                <div class="person-dates">* 1745</div>
+                            </div>
+                        </div>
+                        <div class="child-item">
+                            <div class="person-card">
+                                <div class="person-name">Jiří</div>
+                                <div class="person-dates">* 1747</div>
+                            </div>
+                        </div>
+                        <div class="child-item">
+                            <div class="person-card">
+                                <div class="person-name">Pavel</div>
+                                <div class="person-dates">* 1751<br>† 1828</div>
+                            </div>
+                        </div>
+                        <div class="child-item">
+                            <div class="person-card">
+                                <div class="person-name">Eva</div>
+                                <div class="person-dates">* 1753</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
