@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Faruzelovi — genealogický výzkum rodu Faruzelů</title>
+    <!-- Načtení knihovny Mermaid pro vykreslení rodokmenu -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
         :root {
             --primary: #8b5a2b;
@@ -16,7 +18,7 @@
         body {
             font-family: 'Georgia', serif;
             line-height: 1.8;
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             padding: 20px;
             color: var(--text);
@@ -66,6 +68,17 @@
             border-left: 4px solid var(--primary);
         }
 
+        /* Interaktivní kontejner pro rodokmen */
+        .tree-container {
+            overflow: auto;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            max-height: 600px;
+            cursor: grab;
+        }
+
         footer {
             text-align: center;
             margin-top: 50px;
@@ -101,8 +114,57 @@
         </section>
 
         <section id="rodokmen" class="story-card">
-            <h2>Rodokmen</h2>
-            <p>Zde bude umístěn přehled rodových větví a interaktivní schéma rodokmenu rodu Faruzelů.</p>
+            <h2>Interaktivní rodokmen rodu Faruzelů</h2>
+            <p><i>Tip: Grafem můžete posouvat a přibližovat v okně níže.</i></p>
+            
+            <div class="tree-container">
+                <pre class="mermaid">
+                graph TD
+                    %% Generace 1 (Nejstarší předci)
+                    I17["Jan Faruzel<br/>(*1820 †1886)"]
+                    I18["Anna Kaleta<br/>(*1823 †1890)"]
+                    I20["Pawel Wojnar<br/>(*1815 †)"]
+                    I19["Anna Kotzur<br/>(*1818 †)"]
+                    I21["Adam Pustowka<br/>(*1842 †>1904)"]
+                    I22["Susanna Zagora<br/>(*1841 †>1904)"]
+
+                    %% Generace 2
+                    I14["Pawel Faruzel<br/>(*1842 †1911)"]
+                    I15["Maria Wojnarová<br/>(*1843 †1912)"]
+                    I13["Maria Pustowka<br/>(*1881 †1930)"]
+
+                    %% Generace 3
+                    I12["Adolf Faruzel<br/>(*1879 †1944)"]
+                    I16["Jan Faruzel<br/>(*1889 †1909)"]
+
+                    %% Generace 4
+                    I8["Pawel Faruzel<br/>(*1910 †1993)"]
+                    I48["Karel Faruzel<br/>(*1916 †1989)"]
+                    I51["Adolf Faruzel<br/>(*1914 †>2004)"]
+                    I52["Zuzana Faruzelová<br/>(*1911 †2012)"]
+                    I53["Marie Faruzelová<br/>(*1919 †)"]
+
+                    %% Vztahy a propojení
+                    I17 --- I18 ==> I14
+                    I20 --- I19 ==> I15
+                    I21 --- I22 ==> I13
+
+                    I14 --- I15 ==> I12
+                    I14 --- I15 ==> I16
+
+                    I12 --- I13 ==> I8
+                    I12 --- I13 ==> I48
+                    I12 --- I13 ==> I51
+                    I12 --- I13 ==> I52
+                    I12 --- I13 ==> I53
+
+                    %% Styly uzlů
+                    style I8 fill:#8b5a2b,stroke:#333,stroke-width:2px,color:#fff
+                    style I12 fill:#f4efe6,stroke:#8b5a2b,stroke-width:2px
+                    style I14 fill:#f4efe6,stroke:#8b5a2b,stroke-width:2px
+                    style I17 fill:#f4efe6,stroke:#8b5a2b,stroke-width:2px
+                </pre>
+            </div>
         </section>
     </main>
 
@@ -110,5 +172,8 @@
         <p>&copy; Rod Faruzelů — Genealogický výzkum</p>
     </footer>
 
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
 </body>
 </html>
