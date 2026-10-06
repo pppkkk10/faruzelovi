@@ -182,110 +182,367 @@
         <p>&copy; Rod Faruzelů — Genealogický výzkum</p>
     </footer>
 
+   <!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faruzelovi — genealogický výzkum rodu Faruzelů</title>
+    <!-- Načtení knihovny D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --primary: #8b5a2b;
+            --bg: #fcfbf7;
+            --card-bg: #ffffff;
+            --text: #2c2c2c;
+            --accent: #f4efe6;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 { color: var(--primary); font-size: 2.6em; margin-bottom: 5px; }
+        .subtitle { font-style: italic; color: #666; margin-top: 0; }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: var(--accent);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        nav a:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .story-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Kontejner pro D3.js rodokmen */
+        #tree-container {
+            width: 100%;
+            height: 600px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+        }
+
+        #tree-container:active {
+            cursor: grabbing;
+        }
+
+        .tree-hint {
+            font-size: 0.85em;
+            color: #777;
+            text-align: right;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Styly pro D3 prvky */
+        .link {
+            fill: none;
+            stroke: #8b5a2b;
+            stroke-width: 2px;
+        }
+
+        .node-card {
+            fill: #f4efe6;
+            stroke: #8b5a2b;
+            stroke-width: 2px;
+            rx: 6px;
+            ry: 6px;
+        }
+
+        .marriage-badge {
+            fill: #ffffff;
+            stroke: #8b5a2b;
+            stroke-width: 1.5px;
+            rx: 10px;
+            ry: 10px;
+        }
+
+        .marriage-text {
+            font-size: 9px;
+            fill: #666;
+            text-anchor: middle;
+            font-family: sans-serif;
+        }
+
+        .node-title {
+            font-weight: bold;
+            font-size: 13px;
+            fill: #2c2c2c;
+            text-anchor: middle;
+            font-family: sans-serif;
+        }
+
+        .node-date {
+            font-size: 11px;
+            fill: #555;
+            text-anchor: middle;
+            font-family: sans-serif;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Faruzelovi</h1>
+        <p class="subtitle">genealogický výzkum rodu Faruzelů</p>
+    </header>
+
+    <nav>
+        <a href="#uvod">Úvod</a>
+        <a href="#pribehy">Příběhy & Paměti</a>
+        <a href="#rodokmen">Rodokmen</a>
+    </nav>
+
+    <main>
+        <section id="uvod" class="story-card">
+            <h2>Vítejte v rodinné kronice rodu Faruzelů</h2>
+            <p>Tento web slouží jako živá paměť a dokumentace genealogického výzkumu rodu Faruzelů. Naleznete zde příběhy z minulosti, informace o předcích a rodinné fotografie.</p>
+        </section>
+
+        <section id="pribehy" class="story-card">
+            <h2>První kapitola: O rodu Faruzelů</h2>
+            <p>Sem brzy přibude první velký příběh, informace o původu příjmení nebo medailonek jednoho z předků...</p>
+        </section>
+
+        <section id="rodokmen" class="story-card">
+            <h2>Rodokmen rodu Faruzelů</h2>
+            <div id="tree-container"></div>
+            <div class="tree-hint">Tip: Rodokmenem můžete posouvat myší a přibližovat kolečkem.</div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; Rod Faruzelů — Genealogický výzkum</p>
+    </footer>
+
     <script>
-        // Data rodokmenu
-        const familyData = {
-            parents: [
-                { id: "p1", name: "Jan Faruzel", dates: "* cca 1709 Vendryně", death: "† 9. 2. 1799" },
-                { id: "p2", name: "Zuzana Folwarchny", dates: "* cca 1710 Mistřovice", death: "† 16. 3. 1783" }
-            ],
+        // Dynamická datová struktura
+        const familyTreeData = {
+            name: "Jan Faruzel",
+            dates: "* cca 1709 Vendryně",
+            death: "† 9. 2. 1799",
+            spouse: {
+                name: "Zuzana Folwarchny",
+                dates: "* cca 1710 Mistřovice",
+                death: "† 16. 3. 1783"
+            },
             marriage: "svatba 5. 5. 1733, Těšín",
             children: [
-                { id: "c1", name: "Jan", dates: "* 1733", death: "" },
-                { id: "c2", name: "Zuzana", dates: "* 1736", death: "" },
-                { id: "c3", name: "Adam", dates: "* 1738", death: "† 1794" },
-                { id: "c4", name: "Marie", dates: "* 1745", death: "" },
+                { name: "Jan", dates: "* 1733" },
+                { name: "Zuzana", dates: "* 1736" },
+                { name: "Adam", dates: "* 1738", death: "† 1794" },
+                { name: "Marie", dates: "* 1745" },
                 { 
-                    id: "c5", 
                     name: "Jiří", 
-                    dates: "* 1747", 
-                    death: "",
+                    dates: "* 1747",
                     spouse: {
                         name: "Elizabeta Štefek",
                         dates: "* 4. 2. 1750 Smilovice",
                         death: "† 2. 2. 1804 Mistřovice 6"
                     },
-                    marriage: "22. 5. 1770 Těšín"
+                    marriage: "sv. 22. 5. 1770, Těšín",
+                    children: [
+                        { name: "Zuzana", dates: "* 1771", death: "† 1773" },
+                        { name: "Anna", dates: "* 1773" },
+                        { name: "Mariana", dates: "* 1774", death: "† 1780" },
+                        { name: "Jan", dates: "* 1777", death: "† 1779" },
+                        { name: "Pavel", dates: "* 1779", death: "† 1836" },
+                        { name: "Jiří", dates: "* 1782" }
+                    ]
                 },
-                { id: "c6", name: "Pavel", dates: "* 1751", death: "† 1828" },
-                { id: "c7", name: "Eva", dates: "* 1753", death: "" }
+                { name: "Pavel", dates: "* 1751", death: "† 1828" },
+                { name: "Eva", dates: "* 1753" }
             ]
         };
 
-        // Rozměry kartiček a rozestupy
         const cardW = 140;
         const cardH = 65;
         const gapX = 20;
+        const levelGapY = 170;
 
         const container = d3.select("#tree-container");
         const width = container.node().clientWidth || 1000;
-        const height = 520;
+        const height = 600;
 
-        // Vytvoření SVG plátna
         const svg = container.append("svg")
             .attr("width", width)
             .attr("height", height);
 
-        // Skupina pro zoomování a posouvání
         const g = svg.append("g");
 
-        // Nastavení Zoom & Pan
         const zoom = d3.zoom()
-            .scaleExtent([0.4, 2])
+            .scaleExtent([0.3, 2])
             .on("zoom", (event) => g.attr("transform", event.transform));
         svg.call(zoom);
 
-        // Výpočet pozic
-        // Protože má Jiří u sebe manželku, zabere jeho blok více místa (2 karty + mezeru na svatbu)
-        const spouseExtraW = cardW + 80;
-        const totalRowWidth = (familyData.children.length * cardW) + ((familyData.children.length - 1) * gapX) + spouseExtraW;
-        const startX = (width - totalRowWidth) / 2;
+        // Rekurzivní výpočet šířky každého podstromu
+        function calculateSubtreeWidth(node) {
+            if (!node.children || node.children.length === 0) {
+                node.subtreeWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                return node.subtreeWidth;
+            }
 
-        const parentY = 40;
-        const marriageY = parentY + cardH / 2;
-        const childY = 220;
+            let childrenTotalWidth = 0;
+            node.children.forEach((child, i) => {
+                childrenTotalWidth += calculateSubtreeWidth(child);
+                if (i < node.children.length - 1) childrenTotalWidth += gapX;
+            });
 
-        const centerX = width / 2;
-        const parent1X = centerX - cardW - 60;
-        const parent2X = centerX + 60;
+            const selfWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+            node.subtreeWidth = Math.max(selfWidth, childrenTotalWidth);
+            return node.subtreeWidth;
+        }
 
-        // 1. Spojovací čára mezi rodiči
-        g.append("line")
-            .attr("class", "link")
-            .attr("x1", parent1X + cardW)
-            .attr("y1", marriageY)
-            .attr("x2", parent2X)
-            .attr("y2", marriageY);
+        // Rekurzivní výpočet pozic (X, Y)
+        function assignPositions(node, x, y) {
+            node.y = y;
 
-        // 2. Svatba rodičů (odznak uprostřed)
-        const marriageG = g.append("g")
-            .attr("transform", `translate(${centerX}, ${marriageY})`);
+            if (!node.children || node.children.length === 0) {
+                node.x = x + node.subtreeWidth / 2;
+                return;
+            }
 
-        marriageG.append("rect")
-            .attr("class", "marriage-badge")
-            .attr("x", -70)
-            .attr("y", -12)
-            .attr("width", 140)
-            .attr("height", 24);
+            let currentX = x;
+            node.children.forEach(child => {
+                assignPositions(child, currentX, y + levelGapY);
+                currentX += child.subtreeWidth + gapX;
+            });
 
-        marriageG.append("text")
-            .attr("class", "marriage-text")
-            .attr("dy", 4)
-            .text(familyData.marriage);
+            const firstChild = node.children[0];
+            const lastChild = node.children[node.children.length - 1];
+            
+            const firstChildCenter = firstChild.spouse ? (firstChild.x - 40 - cardW / 2) : firstChild.x;
+            const lastChildCenter = lastChild.spouse ? (lastChild.x - 40 - cardW / 2) : lastChild.x;
 
-        // 3. Svislá čára z manželství rodičů dolů k dětem
-        const lineDropY = childY - 40;
-        g.append("line")
-            .attr("class", "link")
-            .attr("x1", centerX)
-            .attr("y1", marriageY + 12)
-            .attr("x2", centerX)
-            .attr("y2", lineDropY);
+            node.x = (firstChildCenter + lastChildCenter) / 2;
+        }
 
-        // Funkce pro Vykreslení kartičky osoby
-        function renderPerson(group, x, y, p) {
-            const card = group.append("g")
-                .attr("transform", `translate(${x}, ${y})`);
+        // Vykreslení uzlu a jeho potomků
+        function renderNode(node) {
+            const hasSpouse = !!node.spouse;
+            const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
+            const mainY = node.y;
+
+            // Vykreslení hlavní karty
+            drawPersonCard(mainX, mainY, node);
+
+            let marriageCenterX = node.x;
+            let marriageCenterY = mainY + cardH / 2;
+
+            // Vykreslení manželky a svatby
+            if (hasSpouse) {
+                const spouseX = mainX + cardW + 80;
+                marriageCenterX = mainX + cardW + 40;
+
+                g.append("line")
+                    .attr("class", "link")
+                    .attr("x1", mainX + cardW)
+                    .attr("y1", marriageCenterY)
+                    .attr("x2", spouseX)
+                    .attr("y2", marriageCenterY);
+
+                if (node.marriage) {
+                    const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
+                    mG.append("rect")
+                        .attr("class", "marriage-badge")
+                        .attr("x", -55).attr("y", -10)
+                        .attr("width", 110).attr("height", 20);
+                    mG.append("text")
+                        .attr("class", "marriage-text")
+                        .attr("dy", 3)
+                        .text(node.marriage);
+                }
+
+                drawPersonCard(spouseX, mainY, node.spouse);
+            }
+
+            // Vykreslení dětí a spojovacích čar
+            if (node.children && node.children.length > 0) {
+                const dropY = mainY + cardH + 30;
+
+                // Svislá čára z manželství dolů
+                g.append("line")
+                    .attr("class", "link")
+                    .attr("x1", marriageCenterX).attr("y1", hasSpouse ? marriageCenterY + 10 : mainY + cardH)
+                    .attr("x2", marriageCenterX).attr("y2", dropY);
+
+                const childCenters = node.children.map(c => c.spouse ? (c.x - 40) : c.x);
+                const minChildX = d3.min(childCenters);
+                const maxChildX = d3.max(childCenters);
+
+                // Vodorovná rozbočovací čára
+                g.append("line")
+                    .attr("class", "link")
+                    .attr("x1", minChildX).attr("y1", dropY)
+                    .attr("x2", maxChildX).attr("y2", dropY);
+
+                // Svislé přípojky k jednotlivým dětem a rekurzivní vykreslení
+                node.children.forEach(child => {
+                    const childCenterX = child.spouse ? (child.x - 40) : child.x;
+                    g.append("line")
+                        .attr("class", "link")
+                        .attr("x1", childCenterX).attr("y1", dropY)
+                        .attr("x2", childCenterX).attr("y2", child.y);
+
+                    renderNode(child);
+                });
+            }
+        }
+
+        // Pomocná funkce pro kartu osoby
+        function drawPersonCard(x, y, p) {
+            const card = g.append("g").attr("transform", `translate(${x}, ${y})`);
 
             card.append("rect")
                 .attr("class", "node-card")
@@ -294,101 +551,32 @@
 
             card.append("text")
                 .attr("class", "node-title")
-                .attr("x", cardW / 2)
-                .attr("y", 20)
+                .attr("x", cardW / 2).attr("y", 20)
                 .text(p.name);
 
             card.append("text")
                 .attr("class", "node-date")
-                .attr("x", cardW / 2)
-                .attr("y", 37)
+                .attr("x", cardW / 2).attr("y", 37)
                 .text(p.dates);
 
             if (p.death) {
                 card.append("text")
                     .attr("class", "node-date")
-                    .attr("x", cardW / 2)
-                    .attr("y", 52)
+                    .attr("x", cardW / 2).attr("y", 52)
                     .text(p.death);
             }
         }
 
-        // Vykreslení hlavních rodičů nahoře
-        renderPerson(g, parent1X, parentY, familyData.parents[0]);
-        renderPerson(g, parent2X, parentY, familyData.parents[1]);
+        // Inicializace a výpočet
+        calculateSubtreeWidth(familyTreeData);
+        const startX = (width - familyTreeData.subtreeWidth) / 2;
+        assignPositions(familyTreeData, startX, 40);
+        renderNode(familyTreeData);
 
-        // Výpočet pozic a vykreslení dětí
-        let currentX = startX;
-        let firstChildCenterX = 0;
-        let lastChildCenterX = 0;
-
-        familyData.children.forEach((child, i) => {
-            const childCenterX = currentX + cardW / 2;
-
-            if (i === 0) firstChildCenterX = childCenterX;
-            lastChildCenterX = childCenterX;
-
-            // Svislá spojka z vodorovné lišty k dítěti
-            g.append("line")
-                .attr("class", "link")
-                .attr("x1", childCenterX)
-                .attr("y1", lineDropY)
-                .attr("x2", childCenterX)
-                .attr("y2", childY);
-
-            // Vykreslení karty dítěte
-            renderPerson(g, currentX, childY, child);
-
-            // Pokud má dítě manželku (Jiří + Elizabeta)
-            if (child.spouse) {
-                const spouseX = currentX + cardW + 80;
-                const mX = currentX + cardW + 40;
-                const mY = childY + cardH / 2;
-
-                // Čára mezi manžely
-                g.append("line")
-                    .attr("class", "link")
-                    .attr("x1", currentX + cardW)
-                    .attr("y1", mY)
-                    .attr("x2", spouseX)
-                    .attr("y2", mY);
-
-                // Odznak svatby
-                const childMarriageG = g.append("g")
-                    .attr("transform", `translate(${mX}, ${mY})`);
-
-                childMarriageG.append("rect")
-                    .attr("class", "marriage-badge")
-                    .attr("x", -55)
-                    .attr("y", -10)
-                    .attr("width", 110)
-                    .attr("height", 20);
-
-                childMarriageG.append("text")
-                    .attr("class", "marriage-text")
-                    .attr("dy", 3)
-                    .attr("font-size", "9px")
-                    .text(child.marriage);
-
-                // Vykreslení karty manželky
-                renderPerson(g, spouseX, childY, child.spouse);
-
-                currentX += spouseExtraW;
-            }
-
-            currentX += cardW + gapX;
-        });
-
-        // Vodorovná rozbočovací čára nad dětmi
-        g.append("line")
-            .attr("class", "link")
-            .attr("x1", firstChildCenterX)
-            .attr("y1", lineDropY)
-            .attr("x2", lastChildCenterX)
-            .attr("y2", lineDropY);
-
-        // Vycentrování pohledu při načtení
-        svg.call(zoom.transform, d3.zoomIdentity.translate(20, 20).scale(0.85));
+        // Vycentrování pohledu
+        svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
     </script>
+</body>
+</html>
 </body>
 </html>
