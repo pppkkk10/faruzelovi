@@ -117,37 +117,43 @@
             <div class="tree-container">
                 <pre class="mermaid">
                graph TD
-                    %% Vynucení stejného řádku pro rodiče
-                    subgraph Rodice [" "]
+                    %% Horní řádek pro rodiče
+                    subgraph R1 [" "]
                         direction LR
                         Jan["<b>Jan Faruzel</b><br/>* cca 1709 Vendryně<br/>† 9. 2. 1799"]
-                        Svatba["svatba 5. 5. 1733, Těšín"]
+                        M_Rodice((" "))
                         Zuzana["<b>Zuzana Folwarchny</b><br/>* cca 1710 Mistřovice<br/>† 16. 3. 1783"]
-                        
-                        Jan --- Svatba --- Zuzana
+
+                        Jan --- M_Rodice --- Zuzana
                     end
 
-                    %% Děti
-                    D1["<b>Jan</b><br/>* 1733"]
-                    D2["<b>Zuzana</b><br/>* 1736"]
-                    D3["<b>Adam</b><br/>* 1738<br/>† 1794"]
-                    D4["<b>Marie</b><br/>* 1745"]
-                    D5["<b>Jiří</b><br/>* 1747"]
-                    D6["<b>Pavel</b><br/>* 1751<br/>† 1828"]
-                    D7["<b>Eva</b><br/>* 1753"]
+                    %% Spojovací čára dolů ke všem dětem
+                    M_Rodice --> D1
+                    M_Rodice --> D2
+                    M_Rodice --> D3
+                    M_Rodice --> D4
+                    M_Rodice --> D5
+                    M_Rodice --> D6
+                    M_Rodice --> D7
 
-                    %% Propojení od svatby k dětem
-                    Svatba --> D1
-                    Svatba --> D2
-                    Svatba --> D3
-                    Svatba --> D4
-                    Svatba --> D5
-                    Svatba --> D6
-                    Svatba --> D7
+                    %% Spodní řádek pro všechny děti na stejné úrovni
+                    subgraph R2 [" "]
+                        direction LR
+                        D1["<b>Jan</b><br/>* 1733"]
+                        D2["<b>Zuzana</b><br/>* 1736"]
+                        D3["<b>Adam</b><br/>* 1738<br/>† 1794"]
+                        D4["<b>Marie</b><br/>* 1745"]
+                        D5["<b>Jiří</b><br/>* 1747"]
+                        D6["<b>Pavel</b><br/>* 1751<br/>† 1828"]
+                        D7["<b>Eva</b><br/>* 1753"]
 
-                    %% Úprava stylů
-                    style Rodice fill:none,stroke:none;
-                    style Svatba fill:none,stroke:none,font-size:11px;
+                        D1 ~~~ D2 ~~~ D3 ~~~ D4 ~~~ D5 ~~~ D6 ~~~ D7
+                    end
+
+                    %% Potlačení rámečků a stylů podgrafů
+                    style R1 fill:none,stroke:none;
+                    style R2 fill:none,stroke:none;
+                    style M_Rodice fill:#8b5a2b,stroke:#8b5a2b,width:6px,height:6px;
                     classDef default fill:#f4efe6,stroke:#8b5a2b,stroke-width:2px;
                 </pre>
             </div>
