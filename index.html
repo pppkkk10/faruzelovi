@@ -116,14 +116,42 @@
             
             <div class="tree-container">
                 <pre class="mermaid">
-                graph LR
-                    Jan["<b>Jan Faruzel</b><br/>* cca 1709 Vendryně<br/>† 9. 2. 1799"]
-                    Zuzana["<b>Zuzana Folwarczny</b><br/>* cca 1710 Mistřovice<br/>† 16. 3. 1783"]
+                graph TD
+                    %% Rodiče vedle sebe
+                    subgraph Rodice[" "]
+                        direction LR
+                        Jan["<b>Jan Faruzel</b><br/>* cca 1709 Vendryně<br/>† 9. 2. 1799"]
+                        Zuzana["<b>Zuzana Folwarchny</b><br/>* cca 1710 Mistřovice<br/>† 16. 3. 1783"]
+                        Jan ---|<br/>svatba 5. 5. 1733, Těšín| Zuzana
+                    end
 
-                    Jan ---|<br/>svatba 5. 5. 1733, Těšín| Zuzana
+                    %% Spojovací uzel pro děti
+                    M0[" "]
 
-                    style Jan fill:#f4efe6,stroke:#8b5a2b,stroke-width:2px
-                    style Zuzana fill:#f4efe6,stroke:#8b5a2b,stroke-width:2px
+                    %% Děti
+                    D1["<b>Jan</b><br/>* 1733"]
+                    D2["<b>Zuzana</b><br/>* 1736"]
+                    D3["<b>Adam</b><br/>* 1738<br/>† 1794"]
+                    D4["<b>Marie</b><br/>* 1745"]
+                    D5["<b>Jiří</b><br/>* 1747"]
+                    D6["<b>Pavel</b><br/>* 1751<br/>† 1828"]
+                    D7["<b>Eva</b><br/>* 1753"]
+
+                    %% Propojení z rodičů na děti
+                    Jan --- M0
+                    Zuzana --- M0
+                    M0 --> D1
+                    M0 --> D2
+                    M0 --> D3
+                    M0 --> D4
+                    M0 --> D5
+                    M0 --> D6
+                    M0 --> D7
+
+                    %% Zarovnání dětí na stejnou úroveň
+                    classDef default fill:#f4efe6,stroke:#8b5a2b,stroke-width:2px;
+                    style Rodice fill:none,stroke:none;
+                    style M0 width:0px,height:0px,stroke:none,fill:none;
                 </pre>
             </div>
         </section>
