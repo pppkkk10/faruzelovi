@@ -352,6 +352,10 @@
             .attr("width", width)
             .attr("height", height);
 
+        const svg = container.append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
         const g = svg.append("g");
 
         // Nastavení Zoom s filtrem pro zachování klikání na kachličky
