@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rodinná kronika</title>
+    <style>
+        :root {
+            --primary: #8b5a2b;
+            --bg: #fcfbf7;
+            --card-bg: #ffffff;
+            --text: #2c2c2c;
+            --accent: #f4efe6;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 { color: var(--primary); font-size: 2.6em; margin-bottom: 5px; }
+        .subtitle { font-style: italic; color: #666; margin-top: 0; }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: var(--accent);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        nav a:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .story-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-left: 4px solid var(--primary);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Rodinná kronika</h1>
+        <p class="subtitle">Paměti, příběhy a kořeny našeho rodu</p>
+    </header>
+
+    <nav>
+        <a href="#uvod">Úvod</a>
+        <a href="#pribehy">Příběhy & Paměti</a>
+        <a href="#rodokmen">Rodokmen</a>
+    </nav>
+
+    <main>
+        <section id="uvod" class="story-card">
+            <h2>Vítejte v rodinné kronice</h2>
+            <p>Tato kronika vzniká jako živé místo pro uchování vzpomínek, starých fotografií a příběhů našich předků pro další generace.</p>
+        </section>
+
+        <section id="pribehy" class="story-card">
+            <h2>První kapitola: O našem rodu</h2>
+            <p>Sem brzy přibude první velký příběh nebo medailonek jednoho z předků...</p>
+        </section>
+
+        <section id="rodokmen" class="story-card">
+            <h2>Rodokmen</h2>
+            <p>Zde bude umístěn přehled rodových větví a interaktivní schéma rodokmenu.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; Rodinná kronika — Vytvořeno s úctou k předkům</p>
+    </footer>
+
+</body>
+</html>
