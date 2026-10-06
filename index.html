@@ -340,7 +340,9 @@
 
         const zoom = d3.zoom()
             .scaleExtent([0.3, 2])
+            .filter(event => !event.ctrlKey && event.type !== 'dblclick')
             .on("zoom", (event) => g.attr("transform", event.transform));
+        
         svg.call(zoom);
 
         function calculateSubtreeWidth(node) {
@@ -448,14 +450,10 @@
             }
         }
 
-        function drawPersonCard(x, y, p) {
+       function drawPersonCard(x, y, p) {
             const card = g.append("g")
                 .attr("class", "node-group")
-                .attr("transform", `translate(${x}, ${y})`)
-                .on("click", (event) => {
-                    event.stopPropagation();
-                    showDetail(p);
-                });
+                .attr("transform", `translate(${x}, ${y})`);
 
             card.append("rect")
                 .attr("class", "node-card")
@@ -478,6 +476,17 @@
                     .attr("x", cardW / 2).attr("y", 52)
                     .text(p.death);
             }
+
+            // Průhledná vrstva zachytávající kliknutí
+            card.append("rect")
+                .attr("width", cardW)
+                .attr("height", cardH)
+                .attr("fill", "transparent")
+                .style("cursor", "pointer")
+                .on("click", (event) => {
+                    event.stopPropagation();
+                    showDetail(p);
+                });
         }
 
         // Zobrazení detailů v postranním panelu
