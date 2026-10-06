@@ -167,7 +167,6 @@
 
         .node-group {
             cursor: pointer;
-            transition: transform 0.1s ease;
         }
 
         .node-group:hover .node-card {
@@ -242,6 +241,7 @@
             <p>Tento web slouží jako živá paměť a dokumentace genealogického výzkumu rodu Faruzelů. Naleznete zde příběhy z minulosti, informace o předcích a rodinné fotografie.</p>
         </section>
 
+        <!-- Sekce s příběhy -->
         <section id="pribehy" class="story-card">
             <h2>Příběhy & Paměti</h2>
 
@@ -261,6 +261,7 @@
             </article>
         </section>
 
+        <!-- Sekce s rodokmenem -->
         <section id="rodokmen" class="story-card">
             <h2>Rodokmen rodu Faruzelů</h2>
             <div class="tree-wrapper">
@@ -283,16 +284,16 @@
     </footer>
 
     <script>
-        // Dynamická datová struktura s podrobnými detaily
+        // Data rodokmenu s detaily a odkazem
         const familyTreeData = {
             name: "Jan Faruzel",
             dates: "* cca 1709",
             death: "† 1799",
             details: {
                 birth: "cca 1709, Vendryně",
-                death: "9. 2. 1799",
+                death: "9. 2. 1799 (ve věku 90 let)",
                 occupation: "Zahradník / zemědělec",
-                note: "Zakladatel větve rodu Faruzelů ve Vendryni a Těšíně."
+                note: "Zakladatel větve rodu Faruzelů ve Vendryni a Těšíně.",
                 link: "#pribeh-jan-1709" // <--- Odkaz na článek výše
             },
             spouse: {
@@ -353,6 +354,7 @@
 
         const g = svg.append("g");
 
+        // Nastavení Zoom s filtrem pro zachování klikání na kachličky
         const zoom = d3.zoom()
             .scaleExtent([0.3, 2])
             .filter(event => !event.ctrlKey && event.type !== 'dblclick')
@@ -422,7 +424,7 @@
                     .attr("y2", marriageCenterY);
 
                 if (node.marriage) {
-                    const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
+                    const mG = g.append("g").attr("transform", `translate(${marriageCenterX},${marriageCenterY})`);
                     mG.append("rect")
                         .attr("class", "marriage-badge")
                         .attr("x", -55).attr("y", -10)
@@ -465,10 +467,10 @@
             }
         }
 
-       function drawPersonCard(x, y, p) {
+        function drawPersonCard(x, y, p) {
             const card = g.append("g")
                 .attr("class", "node-group")
-                .attr("transform", `translate(${x}, ${y})`);
+                .attr("transform", `translate(${x},${y})`);
 
             card.append("rect")
                 .attr("class", "node-card")
@@ -492,7 +494,7 @@
                     .text(p.death);
             }
 
-            // Průhledná vrstva zachytávající kliknutí
+            // Průhledná vrstva přes celou kartu chytající kliknutí
             card.append("rect")
                 .attr("width", cardW)
                 .attr("height", cardH)
@@ -528,27 +530,4 @@
             }
 
             if (details.note) {
-                html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
-            }
-
-            content.innerHTML = html;
-            document.getElementById("person-detail-panel").classList.add("active");
-        }
-
-        function closeDetail() {
-            document.getElementById("person-detail-panel").classList.remove("active");
-        }
-
-        // Zavření panelu při kliknutí do volného prostoru
-        svg.on("click", closeDetail);
-
-        // Inicializace
-        calculateSubtreeWidth(familyTreeData);
-        const startX = (width - familyTreeData.subtreeWidth) / 2;
-        assignPositions(familyTreeData, startX, 40);
-        renderNode(familyTreeData);
-
-        svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
-    </script>
-</body>
-</html>
+                html += `<div
