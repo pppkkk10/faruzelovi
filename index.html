@@ -68,7 +68,6 @@
             border-left: 4px solid var(--primary);
         }
 
-        /* Kontejner pro D3.js rodokmen */
         .tree-wrapper {
             position: relative;
             width: 100%;
@@ -97,7 +96,6 @@
             font-style: italic;
         }
 
-        /* Postranní panel pro detail osoby */
         #person-detail-panel {
             position: absolute;
             top: 0;
@@ -158,7 +156,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Styly pro D3 prvky */
         .link {
             fill: none;
             stroke: #8b5a2b;
@@ -241,7 +238,6 @@
             <p>Tento web slouží jako živá paměť a dokumentace genealogického výzkumu rodu Faruzelů. Naleznete zde příběhy z minulosti, informace o předcích a rodinné fotografie.</p>
         </section>
 
-        <!-- Sekce s příběhy -->
         <section id="pribehy" class="story-card">
             <h2>Příběhy & Paměti</h2>
 
@@ -261,12 +257,10 @@
             </article>
         </section>
 
-        <!-- Sekce s rodokmenem -->
         <section id="rodokmen" class="story-card">
             <h2>Rodokmen rodu Faruzelů</h2>
             <div class="tree-wrapper">
                 <div id="tree-container"></div>
-                <!-- Postranní panel s detailem -->
                 <div id="person-detail-panel">
                     <button class="close-btn" onclick="closeDetail()">&times;</button>
                     <div class="detail-header">
@@ -285,61 +279,6 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Data rodokmenu
-            const familyTreeData = {
-                name: "Jan Faruzel",
-                dates: "* cca 1709",
-                death: "† 1799",
-                details: {
-                    birth: "cca 1709, Vendryně",
-                    death: "9. 2. 1799 (ve věku 90 let)",
-                    occupation: "Zahradník / zemědělec",
-                    note: "Zakladatel větve rodu Faruzelů ve Vendryni a Těšíně.",
-                    link: "#pribeh-jan-1709"
-                },
-                spouse: {
-                    name: "Zuzana Folwarchny",
-                    dates: "* cca 1710",
-                    death: "† 1783",
-                    details: {
-                        birth: "cca 1710, Mistřovice",
-                        death: "16. 3. 1783"
-                    }
-                },
-                marriage: "svatba 5. 5. 1733, Těšín",
-                children: [
-                    { name: "Jan", dates: "* 1733", details: { birth: "1733, Vendryně" } },
-                    { name: "Zuzana", dates: "* 1736", details: { birth: "1736, Vendryně" } },
-                    { name: "Adam", dates: "* 1738", death: "† 1794", details: { birth: "1738", death: "1794" } },
-                    { name: "Marie", dates: "* 1745", details: { birth: "1745" } },
-                    { 
-                        name: "Jiří", 
-                        dates: "* 1747",
-                        details: { birth: "1747", occupation: "Sedlák" },
-                        spouse: {
-                            name: "Elizabeta Štefek",
-                            dates: "* 1750",
-                            death: "† 1804",
-                            details: {
-                                birth: "4. 2. 1750, Smilovice",
-                                death: "2. 2. 1804, Mistřovice 6"
-                            }
-                        },
-                        marriage: "sv. 22. 5. 1770, Těšín",
-                        children: [
-                            { name: "Zuzana", dates: "* 1771", death: "† 1773", details: { birth: "1771", death: "1773" } },
-                            { name: "Anna", dates: "* 1773", details: { birth: "1773" } },
-                            { name: "Mariana", dates: "* 1774", death: "† 1780", details: { birth: "1774", death: "1780" } },
-                            { name: "Jan", dates: "* 1777", death: "† 1779", details: { birth: "1777", death: "1779" } },
-                            { name: "Pavel", dates: "* 1779", death: "† 1836", details: { birth: "1779", death: "1836" } },
-                            { name: "Jiří", dates: "* 1782", details: { birth: "1782" } }
-                        ]
-                    },
-                    { name: "Pavel", dates: "* 1751", death: "† 1828", details: { birth: "1751", death: "1828" } },
-                    { name: "Eva", dates: "* 1753", details: { birth: "1753" } }
-                ]
-            };
-
             const cardW = 140;
             const cardH = 65;
             const gapX = 20;
@@ -366,200 +305,207 @@
             
             svg.call(zoom);
 
-            function calculateSubtreeWidth(node) {
-                if (!node.children || node.children.length === 0) {
-                    node.subtreeWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+            // Načtení dat ze souboru data.json
+            d3.json("data.json").then(function(familyTreeData) {
+                
+                function calculateSubtreeWidth(node) {
+                    if (!node.children || node.children.length === 0) {
+                        node.subtreeWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                        return node.subtreeWidth;
+                    }
+
+                    let childrenTotalWidth = 0;
+                    node.children.forEach((child, i) => {
+                        childrenTotalWidth += calculateSubtreeWidth(child);
+                        if (i < node.children.length - 1) childrenTotalWidth += gapX;
+                    });
+
+                    const selfWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                    node.subtreeWidth = Math.max(selfWidth, childrenTotalWidth);
                     return node.subtreeWidth;
                 }
 
-                let childrenTotalWidth = 0;
-                node.children.forEach((child, i) => {
-                    childrenTotalWidth += calculateSubtreeWidth(child);
-                    if (i < node.children.length - 1) childrenTotalWidth += gapX;
-                });
+                function assignPositions(node, x, y) {
+                    node.y = y;
 
-                const selfWidth = node.spouse ? (cardW * 2 + 80) : cardW;
-                node.subtreeWidth = Math.max(selfWidth, childrenTotalWidth);
-                return node.subtreeWidth;
-            }
-
-            function assignPositions(node, x, y) {
-                node.y = y;
-
-                if (!node.children || node.children.length === 0) {
-                    node.x = x + node.subtreeWidth / 2;
-                    return;
-                }
-
-                let currentX = x;
-                node.children.forEach(child => {
-                    assignPositions(child, currentX, y + levelGapY);
-                    currentX += child.subtreeWidth + gapX;
-                });
-
-                const firstChild = node.children[0];
-                const lastChild = node.children[node.children.length - 1];
-                
-                const firstChildCenter = firstChild.spouse ? (firstChild.x - 40 - cardW / 2) : firstChild.x;
-                const lastChildCenter = lastChild.spouse ? (lastChild.x - 40 - cardW / 2) : lastChild.x;
-
-                node.x = (firstChildCenter + lastChildCenter) / 2;
-            }
-
-            function renderNode(node) {
-                const hasSpouse = !!node.spouse;
-                const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
-                const mainY = node.y;
-
-                drawPersonCard(mainX, mainY, node);
-
-                let marriageCenterX = node.x;
-                let marriageCenterY = mainY + cardH / 2;
-
-                if (hasSpouse) {
-                    const spouseX = mainX + cardW + 80;
-                    marriageCenterX = mainX + cardW + 40;
-
-                    g.append("line")
-                        .attr("class", "link")
-                        .attr("x1", mainX + cardW)
-                        .attr("y1", marriageCenterY)
-                        .attr("x2", spouseX)
-                        .attr("y2", marriageCenterY);
-
-                    if (node.marriage) {
-                        const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
-                        mG.append("rect")
-                            .attr("class", "marriage-badge")
-                            .attr("x", -55).attr("y", -10)
-                            .attr("width", 110).attr("height", 20);
-                        mG.append("text")
-                            .attr("class", "marriage-text")
-                            .attr("dy", 3)
-                            .text(node.marriage);
+                    if (!node.children || node.children.length === 0) {
+                        node.x = x + node.subtreeWidth / 2;
+                        return;
                     }
 
-                    drawPersonCard(spouseX, mainY, node.spouse);
+                    let currentX = x;
+                    node.children.forEach(child => {
+                        assignPositions(child, currentX, y + levelGapY);
+                        currentX += child.subtreeWidth + gapX;
+                    });
+
+                    const firstChild = node.children[0];
+                    const lastChild = node.children[node.children.length - 1];
+                    
+                    const firstChildCenter = firstChild.spouse ? (firstChild.x - 40 - cardW / 2) : firstChild.x;
+                    const lastChildCenter = lastChild.spouse ? (lastChild.x - 40 - cardW / 2) : lastChild.x;
+
+                    node.x = (firstChildCenter + lastChildCenter) / 2;
                 }
 
-                if (node.children && node.children.length > 0) {
-                    const dropY = mainY + cardH + 30;
+                function renderNode(node) {
+                    const hasSpouse = !!node.spouse;
+                    const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
+                    const mainY = node.y;
 
-                    g.append("line")
-                        .attr("class", "link")
-                        .attr("x1", marriageCenterX).attr("y1", hasSpouse ? marriageCenterY + 10 : mainY + cardH)
-                        .attr("x2", marriageCenterX).attr("y2", dropY);
+                    drawPersonCard(mainX, mainY, node);
 
-                    const childCenters = node.children.map(c => c.spouse ? (c.x - 40) : c.x);
-                    const minChildX = d3.min(childCenters);
-                    const maxChildX = d3.max(childCenters);
+                    let marriageCenterX = node.x;
+                    let marriageCenterY = mainY + cardH / 2;
 
-                    g.append("line")
-                        .attr("class", "link")
-                        .attr("x1", minChildX).attr("y1", dropY)
-                        .attr("x2", maxChildX).attr("y2", dropY);
+                    if (hasSpouse) {
+                        const spouseX = mainX + cardW + 80;
+                        marriageCenterX = mainX + cardW + 40;
 
-                    node.children.forEach(child => {
-                        const childCenterX = child.spouse ? (child.x - 40) : child.x;
                         g.append("line")
                             .attr("class", "link")
-                            .attr("x1", childCenterX).attr("y1", dropY)
-                            .attr("x2", childCenterX).attr("y2", child.y);
+                            .attr("x1", mainX + cardW)
+                            .attr("y1", marriageCenterY)
+                            .attr("x2", spouseX)
+                            .attr("y2", marriageCenterY);
 
-                        renderNode(child);
-                    });
+                        if (node.marriage) {
+                            const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
+                            mG.append("rect")
+                                .attr("class", "marriage-badge")
+                                .attr("x", -55).attr("y", -10)
+                                .attr("width", 110).attr("height", 20);
+                            mG.append("text")
+                                .attr("class", "marriage-text")
+                                .attr("dy", 3)
+                                .text(node.marriage);
+                        }
+
+                        drawPersonCard(spouseX, mainY, node.spouse);
+                    }
+
+                    if (node.children && node.children.length > 0) {
+                        const dropY = mainY + cardH + 30;
+
+                        g.append("line")
+                            .attr("class", "link")
+                            .attr("x1", marriageCenterX).attr("y1", hasSpouse ? marriageCenterY + 10 : mainY + cardH)
+                            .attr("x2", marriageCenterX).attr("y2", dropY);
+
+                        const childCenters = node.children.map(c => c.spouse ? (c.x - 40) : c.x);
+                        const minChildX = d3.min(childCenters);
+                        const maxChildX = d3.max(childCenters);
+
+                        g.append("line")
+                            .attr("class", "link")
+                            .attr("x1", minChildX).attr("y1", dropY)
+                            .attr("x2", maxChildX).attr("y2", dropY);
+
+                        node.children.forEach(child => {
+                            const childCenterX = child.spouse ? (child.x - 40) : child.x;
+                            g.append("line")
+                                .attr("class", "link")
+                                .attr("x1", childCenterX).attr("y1", dropY)
+                                .attr("x2", childCenterX).attr("y2", child.y);
+
+                            renderNode(child);
+                        });
+                    }
                 }
-            }
 
-            function drawPersonCard(x, y, p) {
-                const card = g.append("g")
-                    .attr("class", "node-group")
-                    .attr("transform", `translate(${x}, ${y})`);
+                function drawPersonCard(x, y, p) {
+                    const card = g.append("g")
+                        .attr("class", "node-group")
+                        .attr("transform", `translate(${x}, ${y})`);
 
-                card.append("rect")
-                    .attr("class", "node-card")
-                    .attr("width", cardW)
-                    .attr("height", cardH);
+                    card.append("rect")
+                        .attr("class", "node-card")
+                        .attr("width", cardW)
+                        .attr("height", cardH);
 
-                card.append("text")
-                    .attr("class", "node-title")
-                    .attr("x", cardW / 2).attr("y", 20)
-                    .text(p.name);
+                    card.append("text")
+                        .attr("class", "node-title")
+                        .attr("x", cardW / 2).attr("y", 20)
+                        .text(p.name);
 
-                card.append("text")
-                    .attr("class", "node-date")
-                    .attr("x", cardW / 2).attr("y", 37)
-                    .text(p.dates);
-
-                if (p.death) {
                     card.append("text")
                         .attr("class", "node-date")
-                        .attr("x", cardW / 2).attr("y", 52)
-                        .text(p.death);
+                        .attr("x", cardW / 2).attr("y", 37)
+                        .text(p.dates);
+
+                    if (p.death) {
+                        card.append("text")
+                            .attr("class", "node-date")
+                            .attr("x", cardW / 2).attr("y", 52)
+                            .text(p.death);
+                    }
+
+                    card.append("rect")
+                        .attr("width", cardW)
+                        .attr("height", cardH)
+                        .attr("fill", "transparent")
+                        .style("cursor", "pointer")
+                        .on("click", (event) => {
+                            event.stopPropagation();
+                            showDetail(p);
+                        });
                 }
 
-                card.append("rect")
-                    .attr("width", cardW)
-                    .attr("height", cardH)
-                    .attr("fill", "transparent")
-                    .style("cursor", "pointer")
-                    .on("click", (event) => {
-                        event.stopPropagation();
-                        showDetail(p);
-                    });
-            }
+                function showDetail(person) {
+                    document.getElementById("detail-name").innerText = person.name;
+                    const content = document.getElementById("detail-content");
+                    content.innerHTML = "";
 
-            function showDetail(person) {
-                document.getElementById("detail-name").innerText = person.name;
-                const content = document.getElementById("detail-content");
-                content.innerHTML = "";
+                    const details = person.details || {};
 
-                const details = person.details || {};
+                    let html = "";
+                    if (details.birth) {
+                        html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${details.birth}</div>`;
+                    } else {
+                        html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${person.dates || 'neuvedeno'}</div>`;
+                    }
 
-                let html = "";
-                if (details.birth) {
-                    html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${details.birth}</div>`;
-                } else {
-                    html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${person.dates || 'neuvedeno'}</div>`;
+                    if (details.death || person.death) {
+                        html += `<div class="detail-row"><span class="detail-label">Úmrtí:</span> ${details.death || person.death}</div>`;
+                    }
+
+                    if (details.occupation) {
+                        html += `<div class="detail-row"><span class="detail-label">Povolání:</span> ${details.occupation}</div>`;
+                    }
+
+                    if (details.note) {
+                        html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
+                    }
+
+                    if (details.link) {
+                        html += `<div class="detail-row" style="margin-top: 20px; text-align: center;">
+                                    <a href="${details.link}" onclick="closeDetail()" style="display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+                                        &#128214; Přečíst si příběh
+                                    </a>
+                                </div>`;
+                    }
+
+                    content.innerHTML = html;
+                    document.getElementById("person-detail-panel").classList.add("active");
                 }
 
-                if (details.death || person.death) {
-                    html += `<div class="detail-row"><span class="detail-label">Úmrtí:</span> ${details.death || person.death}</div>`;
-                }
+                window.closeDetail = function() {
+                    document.getElementById("person-detail-panel").classList.remove("active");
+                };
 
-                if (details.occupation) {
-                    html += `<div class="detail-row"><span class="detail-label">Povolání:</span> ${details.occupation}</div>`;
-                }
+                svg.on("click", window.closeDetail);
 
-                if (details.note) {
-                    html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
-                }
+                // Spuštění výpočtu a vykreslení
+                calculateSubtreeWidth(familyTreeData);
+                const startX = (width - familyTreeData.subtreeWidth) / 2;
+                assignPositions(familyTreeData, startX, 40);
+                renderNode(familyTreeData);
 
-                if (details.link) {
-                    html += `<div class="detail-row" style="margin-top: 20px; text-align: center;">
-                                <a href="${details.link}" onclick="closeDetail()" style="display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
-                                    &#128214; Přečíst si příběh
-                                </a>
-                            </div>`;
-                }
+                svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
 
-                content.innerHTML = html;
-                document.getElementById("person-detail-panel").classList.add("active");
-            }
-
-            window.closeDetail = function() {
-                document.getElementById("person-detail-panel").classList.remove("active");
-            };
-
-            svg.on("click", window.closeDetail);
-
-            // Spuštění vykreslení
-            calculateSubtreeWidth(familyTreeData);
-            const startX = (width - familyTreeData.subtreeWidth) / 2;
-            assignPositions(familyTreeData, startX, 40);
-            renderNode(familyTreeData);
-
-            svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
+            }).catch(function(error) {
+                console.error("Chyba při načítání souboru data.json:", error);
+            });
         });
     </script>
 </body>
