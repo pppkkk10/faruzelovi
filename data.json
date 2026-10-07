@@ -1,0 +1,107 @@
+{
+  "name": "Jan Faruzel",
+  "dates": "* cca 1709",
+  "death": "† 1799",
+  "details": {
+    "birth": "cca 1709, Vendryně",
+    "death": "9. 2. 1799 (ve věku 90 let)",
+    "occupation": "Zahradník / zemědělec",
+    "note": "Zakladatel větvě rodu Faruzelů ve Vendryni a Těšíně.",
+    "link": "#pribeh-jan-1709"
+  },
+  "spouse": {
+    "name": "Zuzana Folwarchny",
+    "dates": "* cca 1710",
+    "death": "† 1783",
+    "details": {
+      "birth": "cca 1710, Mistřovice",
+      "death": "16. 3. 1783"
+    }
+  },
+  "marriage": "svatba 5. 5. 1733, Těšín",
+  "children": [
+    {
+      "name": "Jan",
+      "dates": "* 1733",
+      "details": { "birth": "1733, Vendryně" }
+    },
+    {
+      "name": "Zuzana",
+      "dates": "* 1736",
+      "details": { "birth": "1736, Vendryně" }
+    },
+    {
+      "name": "Adam",
+      "dates": "* 1738",
+      "death": "† 1794",
+      "details": { "birth": "1738", "death": "1794" }
+    },
+    {
+      "name": "Marie",
+      "dates": "* 1745",
+      "details": { "birth": "1745" }
+    },
+    {
+      "name": "Jiří",
+      "dates": "* 1747",
+      "details": { "birth": "1747", "occupation": "Sedlák" },
+      "spouse": {
+        "name": "Elizabeta Štefek",
+        "dates": "* 1750",
+        "death": "† 1804",
+        "details": {
+          "birth": "4. 2. 1750, Smilovice",
+          "death": "2. 2. 1804, Mistřovice 6"
+        }
+      },
+      "marriage": "sv. 22. 5. 1770, Těšín",
+      "children": [
+        {
+          "name": "Zuzana",
+          "dates": "* 1771",
+          "death": "† 1773",
+          "details": { "birth": "1771", "death": "1773" }
+        },
+        {
+          "name": "Anna",
+          "dates": "* 1773",
+          "details": { "birth": "1773" }
+        },
+        {
+          "name": "Mariana",
+          "dates": "* 1774",
+          "death": "† 1780",
+          "details": { "birth": "1774", "death": "1780" }
+        },
+        {
+          "name": "Jan",
+          "dates": "* 1777",
+          "death": "† 1779",
+          "details": { "birth": "1777", "death": "1779" }
+        },
+        {
+          "name": "Pavel",
+          "dates": "* 1779",
+          "death": "† 1836",
+          "details": { "birth": "1779", "death": "1836" }
+        },
+        {
+          "name": "Jiří",
+          "dates": "* 1782",
+          "details": { "birth": "1782" }
+        }
+      ]
+    },
+    {
+      "name": "Pavel",
+      "dates": "* 1751",
+      "death": "† 1828",
+      "details": { "birth": "1751", "death": "1828" }
+    },
+    {
+      "name": "Eva",
+      "dates": "* 1753",
+      "details": { "birth": "1753" }
+    }
+  ]
+}
