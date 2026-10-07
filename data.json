@@ -4,21 +4,21 @@
   "death": "† 1799",
   "details": {
     "birth": "cca 1709, Vendryně",
-    "death": "9. 2. 1799 (ve věku 90 let)",
+    "death": "9. 2. 1799 (ve věku 90 let) Mistřovice 6",
     "occupation": "Zahradník / zemědělec",
     "note": "Zakladatel větvě rodu Faruzelů ve Vendryni a Těšíně.",
     "link": "#pribeh-jan-1709"
   },
   "spouse": {
-    "name": "Zuzana Folwarchny",
+    "name": "Zuzana Folwarczny",
     "dates": "* cca 1710",
     "death": "† 1783",
     "details": {
       "birth": "cca 1710, Mistřovice",
-      "death": "16. 3. 1783"
+      "death": "16. 3. 1783 Mistřovice 6"
     }
   },
-  "marriage": "svatba 5. 5. 1733, Těšín",
+  "marriage": "5. 5. 1733 Těšín",
   "children": [
     {
       "name": "Jan",
@@ -54,7 +54,7 @@
           "death": "2. 2. 1804, Mistřovice 6"
         }
       },
-      "marriage": "sv. 22. 5. 1770, Těšín",
+      "marriage": "22. 5. 1770 Těšín",
       "children": [
         {
           "name": "Zuzana",
