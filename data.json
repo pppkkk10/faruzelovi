@@ -3,7 +3,10 @@
   "dates": "* cca 1709",
   "death": "† 1799",
   "details": {
-    "birth": "cca 1709, Vendryně",
+    "birth": "cca 1709",
+    "birth place": "Vendryně",
+    "lat": 49.6666,
+    "lng": 18.7131,
     "death": "9. 2. 1799 (ve věku 90 let) Mistřovice 6",
     "occupation": "Zahradník / zemědělec",
     "note": "Zakladatel větvě rodu Faruzelů ve Vendryni a Těšíně.",
