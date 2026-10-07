@@ -3,200 +3,432 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rodokmen rodiny Faruželovy</title>
-
-    <!-- Leaflet CSS (pro mapu) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
+    <title>Faruzelovi — genealogický výzkum rodu Faruzelů</title>
+    <!-- Načtení knihovny D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --accent-color: #8e44ad;
-            --bg-color: #f8f9fa;
+            --primary: #8b5a2b;
+            --bg: #fcfbf7;
             --card-bg: #ffffff;
-            --text-color: #333333;
+            --text: #2c2c2c;
+            --accent: #f4efe6;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            color: var(--text);
+            background-color: var(--bg);
         }
 
         header {
-            background-color: var(--primary-color);
-            color: white;
             text-align: center;
-            padding: 2rem 1rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
         }
 
+        h1 { color: var(--primary); font-size: 2.6em; margin-bottom: 5px; }
+        .subtitle { font-style: italic; color: #666; margin-top: 0; }
+
+        /* Navigace - záložky */
         nav {
-            background-color: #1a252f;
             display: flex;
             justify-content: center;
-            gap: 1rem;
-            padding: 0.5rem;
+            gap: 15px;
+            background: var(--accent);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
             flex-wrap: wrap;
         }
 
-        nav button {
-            background: none;
-            border: none;
+        nav a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        nav a:hover {
+            background-color: rgba(139, 90, 43, 0.15);
+        }
+
+        /* Aktivní tlačítko v navigaci */
+        nav a.nav-active {
+            background-color: var(--primary);
             color: white;
-            padding: 0.75rem 1.25rem;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            border-radius: 4px;
         }
 
-        nav button:hover, nav button.active {
-            background-color: var(--accent-color);
-        }
-
-        main {
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .tab-content {
+        /* Sekce/podstránky skryté výchozím stavem */
+        .page-section {
             display: none;
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .tab-content.active {
+        .page-section.active {
             display: block;
         }
 
-        /* Styly pro kontakt a formulář */
+        .story-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Vyhledávací lišta */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px 14px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(139, 90, 43, 0.3);
+        }
+
+        .search-bar button {
+            padding: 10px 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-bar button:hover {
+            background: #6e4620;
+        }
+
+        /* Formulář v sekci Zapojte se */
         .contact-form {
             display: flex;
             flex-direction: column;
-            gap: 1.2rem;
-            margin-top: 1.5rem;
-            max-width: 600px;
+            gap: 15px;
+            margin-top: 20px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 5px;
         }
 
         .form-group label {
             font-weight: bold;
-            color: var(--primary-color);
+            font-size: 0.9em;
+            color: var(--text);
         }
 
         .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 0.75rem;
+        .form-group textarea,
+        .form-group select {
+            padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1rem;
+            border-radius: 6px;
             font-family: inherit;
+            font-size: 0.95em;
         }
 
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(139, 90, 43, 0.3);
         }
 
         .btn-submit {
-            background-color: var(--accent-color);
+            background: var(--primary);
             color: white;
+            padding: 12px 20px;
             border: none;
-            padding: 0.85rem;
-            font-size: 1rem;
-            border-radius: 4px;
-            cursor: pointer;
+            border-radius: 6px;
             font-weight: bold;
-            transition: background-color 0.3s;
+            font-size: 1em;
+            cursor: pointer;
+            align-self: flex-start;
+            transition: background 0.2s;
         }
 
         .btn-submit:hover {
-            background-color: #703688;
+            background: #6e4620;
         }
 
-        /* Mapa */
-        #map {
-            height: 500px;
+        .tree-wrapper {
+            position: relative;
             width: 100%;
+            height: 600px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
-            margin-top: 1rem;
-            border: 1px solid #ccc;
+            overflow: hidden;
+        }
+
+        #tree-container {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #tree-container:active {
+            cursor: grabbing;
+        }
+
+        .tree-hint {
+            font-size: 0.85em;
+            color: #777;
+            text-align: right;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        #person-detail-panel {
+            position: absolute;
+            top: 0;
+            right: -320px;
+            width: 300px;
+            height: 100%;
+            background: #ffffff;
+            box-shadow: -3px 0 15px rgba(0,0,0,0.15);
+            transition: right 0.3s ease;
+            padding: 25px;
+            box-sizing: border-box;
+            z-index: 10;
+            overflow-y: auto;
+            border-left: 3px solid var(--primary);
+        }
+
+        #person-detail-panel.active {
+            right: 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .detail-header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-header h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .detail-row {
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #555;
+            display: block;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .link {
+            fill: none;
+            stroke: #8b5a2b;
+            stroke-width: 2px;
+        }
+
+        .node-group {
+            cursor: pointer;
+        }
+
+        .node-group:hover .node-card {
+            fill: #ede3d3;
+            stroke-width: 2.5px;
+        }
+
+        .node-card {
+            fill: #f4efe6;
+            stroke: #8b5a2b;
+            stroke-width: 2px;
+            rx: 6px;
+            ry: 6px;
+            transition: stroke 0.3s, stroke-width 0.3s;
+        }
+
+        .node-card.highlight {
+            stroke: #d9534f !important;
+            stroke-width: 4px !important;
+            fill: #fdf2f2 !important;
+        }
+
+        .marriage-badge {
+            fill: #ffffff;
+            stroke: #8b5a2b;
+            stroke-width: 1.5px;
+            rx: 10px;
+            ry: 10px;
+        }
+
+        .marriage-text {
+            font-size: 9px;
+            fill: #666;
+            text-anchor: middle;
+            font-family: sans-serif;
+        }
+
+        .node-title {
+            font-weight: bold;
+            font-size: 13px;
+            fill: #2c2c2c;
+            text-anchor: middle;
+            font-family: sans-serif;
+        }
+
+        .node-date {
+            font-size: 11px;
+            fill: #555;
+            text-anchor: middle;
+            font-family: sans-serif;
         }
 
         footer {
             text-align: center;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            color: #666;
+            margin-top: 50px;
+            padding-top: 20px;
             border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #777;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Rodokmen rodiny Faruželovy</h1>
-        <p>Historie, pamětníci a mapa sídel našich předků</p>
+        <h1>Faruzelovi</h1>
+        <p class="subtitle">genealogický výzkum rodu Faruzelů</p>
     </header>
 
     <nav>
-        <button class="nav-btn active" onclick="zobrazTab('uvod')">Úvod</button>
-        <button class="nav-btn" onclick="zobrazTab('osoby')">Osoby</button>
-        <button class="nav-btn" onclick="zobrazTab('mapa')">Mapa míst</button>
-        <button class="nav-btn" onclick="zobrazTab('zapojte-se')">Zapojte se</button>
+        <a href="#uvod" class="nav-link" data-target="uvod">Úvod</a>
+        <a href="#pribehy" class="nav-link" data-target="pribehy">Příběhy & Paměti</a>
+        <a href="#rodokmen" class="nav-link" data-target="rodokmen">Rodokmen</a>
+        <a href="#zapojte-se" class="nav-link" data-target="zapojte-se">Zapojte se</a>
     </nav>
 
     <main>
-        <!-- Sekce Úvod -->
-        <section id="uvod" class="tab-content active">
-            <h2>Vítejte na stránkách rodokmenu</h2>
-            <p>Tento web slouží ke shromažďování historických dat, fotografií a příběhů rodiny Faruželovy.</p>
+        <!-- Podstránka Úvod -->
+        <section id="uvod" class="page-section story-card">
+            <h2>Vítejte v rodinné kronice rodu Faruzelů</h2>
+            <p>Tento web slouží jako živá paměť a dokumentace genealogického výzkumu rodu Faruzelů. Naleznete zde příběhy z minulosti, informace o předcích a rodinné fotografie.</p>
         </section>
 
-        <!-- Sekce Osoby -->
-        <section id="osoby" class="tab-content">
-            <h2>Seznam předků</h2>
-            <div id="seznam-osob">Načítám data...</div>
+        <!-- Podstránka Příběhy -->
+        <section id="pribehy" class="page-section story-card">
+            <h2>Příběhy & Paměti</h2>
+
+            <article id="pribeh-jan-1709" style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 20px;">
+                <h3 style="color: var(--primary); margin-bottom: 5px;">První známý předek: Jan Faruzel (* cca 1709 – † 1799)</h3>
+                <p style="font-size: 0.9em; color: #666; font-style: italic;">Místo původu: Vendryně / Těšínské knížectví</p>
+                
+                <p>
+                    Nejstarší písemně doložený předek našeho rodu, Jan Faruzel, se narodil kolem roku 1709. 
+                    Žil v pohnuté době 18. století na Těšínsku, kdy byla celá oblast pod správou habsburské monarchie. 
+                    Dne 5. května 1733 uzavřel v Těšíně sňatek se Zuzanou Folwarčnou z Mistřovic.
+                </p>
+                <p>
+                    Jan se dožil na svou dobu mimořádného věku — zemřel 9. února 1799 ve věku úctyhodných 90 let. 
+                    Společně se Zuzanou přivedli na svět sedm dětí a položili tak pevný základ celému rodu Faruzelů.
+                </p>
+            </article>
         </section>
 
-        <!-- Sekce Mapa -->
-        <section id="mapa" class="tab-content">
-            <h2>Mapa míst předků</h2>
-            <p>Prohlédněte si sídla a obce, ve kterých žili naši předci. Po kliknutí na špendlík uvidíte podrobnosti.</p>
-            <div id="map"></div>
+        <!-- Podstránka Rodokmen -->
+        <section id="rodokmen" class="page-section story-card">
+            <h2>Rodokmen rodu Faruzelů</h2>
+            
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Hledat osobu podle jména..." list="people-list">
+                <datalist id="people-list"></datalist>
+                <button id="search-btn">Vyhledat</button>
+            </div>
+
+            <div class="tree-wrapper">
+                <div id="tree-container"></div>
+                <div id="person-detail-panel">
+                    <button class="close-btn" onclick="closeDetail()">&times;</button>
+                    <div class="detail-header">
+                        <h3 id="detail-name">Jméno Osoby</h3>
+                    </div>
+                    <div id="detail-content"></div>
+                </div>
+            </div>
+            <div class="tree-hint">Tip: Můžete vyhledat jméno nahoře. Rodokmenem lze také posouvat myší a přibližovat kolečkem.</div>
         </section>
 
-        <!-- Sekce Zapojte se / Kontakt -->
-        <section id="zapojte-se" class="tab-content">
+        <!-- Podstránka Zapojte se -->
+        <section id="zapojte-se" class="page-section story-card">
             <h2>Zapojte se do tvorby rodokmenu</h2>
-            <p>Máte k dispozici staré fotografie, vzpomínky nebo jste našli chybu v udávaných datech? Budeme moc rádi, když se s námi podělíte!</p>
+            <p>
+                Každý rodokmen je neúplný bez příběhů, fotografií a vzpomínek žijících pamětníků. Pokud jste členy rodu Faruzelů nebo příbuzných větví, pomozte nám tuto kroniku dále doplňovat.
+            </p>
 
-            <form class="contact-form" action="https://formsubmit.co/pet.koudelkova@gmail.com" method="POST">
+            <div style="background: var(--accent); padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: var(--primary);">Jak můžete pomoci?</h3>
+                <ul>
+                    <li><strong>Doplněním dat:</strong> Přesnější data narození, sňatků či úmrtí.</li>
+                    <li><strong>Rodinnými fotografiemi:</strong> Skeny starých i novějších snímků s identifikovanými osobami.</li>
+                    <li><strong>Příběhy a vzpomínkami:</strong> Historky, vzpomínky na předky, informace o jejich povolání či životních osudech.</li>
+                </ul>
+            </div>
+
+            <form class="contact-form" onsubmit="event.preventDefault(); alert('Děkujeme za zprávu! Informace byly předány ke zpracování.'); this.reset();">
                 <div class="form-group">
                     <label for="name">Vaše jméno a příjmení *</label>
-                    <input type="text" id="name" name="jmeno" required placeholder="Jan Faruzel">
+                    <input type="text" id="name" required placeholder="Jan Faruzel">
                 </div>
 
                 <div class="form-group">
                     <label for="email">E-mailový kontakt *</label>
-                    <input type="email" id="email" name="email" required placeholder="pet.koudelkova@gmail.com">
+                    <input type="email" id="email" required placeholder="vas.email@example.com">
                 </div>
 
                 <div class="form-group">
                     <label for="topic">Čeho se příspěvek týká?</label>
-                    <select id="topic" name="tema">
+                    <select id="topic">
                         <option value="doplneni">Oprava nebo doplnění dat v rodokmenu</option>
                         <option value="fotografie">Mám k dispozici rodinné fotografie</option>
                         <option value="pribeh">Chci se podělit o příběh/vzpomínku</option>
@@ -205,8 +437,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="message">Vaše zpráva *</label>
-                    <textarea id="message" name="zprava" required placeholder="Napište text zprávy..."></textarea>
+                    <label for="message">Vaše zpráva / podrobnosti *</label>
+                    <textarea id="message" rows="5" required placeholder="Napište nám, o jakou osobu nebo období se jedná..."></textarea>
                 </div>
 
                 <button type="submit" class="btn-submit">Odeslat zprávu</button>
@@ -215,89 +447,346 @@
     </main>
 
     <footer>
-        <p>&copy; Rodina Faruželova</p>
+        <p>&copy; Rod Faruzelů — Genealogický výzkum</p>
     </footer>
 
-    <!-- Leaflet JS (Knihovna pro mapy) -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- Hlavní skript stránky -->
     <script>
-        let mapaInicilazovana = false;
-        let map;
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            // --- LOGIKA PŘEPÍNÁNÍ PODSTRÁNEK ---
+            const navLinks = document.querySelectorAll(".nav-link");
+            const sections = document.querySelectorAll(".page-section");
 
-        // Přepínání mezi záložkami
-        function zobrazTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            function showPage(targetId) {
+                sections.forEach(sec => sec.classList.remove("active"));
+                navLinks.forEach(link => link.classList.remove("nav-active"));
 
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
+                const targetSection = document.getElementById(targetId) || document.getElementById("uvod");
+                targetSection.classList.add("active");
 
-            // Pokud přepneme na mapu, přikážeme Leafletu přepočítat velikost okna
-            if (tabId === 'mapa' && map) {
-                setTimeout(() => {
-                    map.invalidateSize();
-                }, 100);
-            }
-        }
+                const activeLink = document.querySelector(`.nav-link[data-target="${targetSection.id}"]`);
+                if (activeLink) activeLink.classList.add("nav-active");
 
-        // Inicializace Leaflet mapy
-        function inicializujMapu(osoby) {
-            // Vytvoření mapy s výchozím středem (ČR)
-            map = L.map('map').setView([49.8175, 15.4730], 7);
-
-            // Přidání podkladové mapy (OpenStreetMap)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-
-            const markers = [];
-
-            // Přidání špendlíků pro jednotlivé osoby z data.json
-            osoby.forEach(osoba => {
-                if (osoba.lat && osoba.lng) {
-                    const textoPopis = `<b>${osoba.jmeno || 'Předek'}</b><br>${osoba.misto || 'Neznámé místo'}${osoba.narozeni ? '<br>Narození: ' + osoba.narozeni : ''}`;
-                    const marker = L.marker([osoba.lat, osoba.lng])
-                        .addTo(map)
-                        .bindPopup(textoPopis);
-                    
-                    markers.push(marker);
+                if (targetSection.id === "rodokmen" && window.renderTree) {
+                    window.renderTree();
                 }
-            });
-
-            // Pokud existují alespoň jedny souřadnice, mapa se automaticky přizpůsobí
-            if (markers.length > 0) {
-                const group = new L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.1));
             }
-        }
 
-        // Načtení dat ze souboru data.json
-        fetch('data.json')
-            .then(response => response.json())
-            .then(osoby => {
-                // Vykreslení osob do seznamu
-                const container = document.getElementById('seznam-osob');
-                if (container) {
-                    container.innerHTML = osoby.map(o => `
-                        <div style="border-bottom: 1px solid #eee; padding: 0.5rem 0;">
-                            <strong>${o.jmeno}</strong> ${o.narozeni ? `(*${o.narozeni})` : ''} — ${o.misto || 'Místo neuvedeno'}
-                        </div>
-                    `).join('');
-                }
-
-                // Načtení mapy
-                inicializujMapu(osoby);
-            })
-            .catch(error => {
-                console.error('Chyba při načítání data.json:', error);
-                document.getElementById('seznam-osob').innerText = 'Chyba při načítání dat.';
+            navLinks.forEach(link => {
+                link.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const target = this.getAttribute("data-target");
+                    window.location.hash = target;
+                    showPage(target);
+                });
             });
+
+            function handleHashChange() {
+                const hash = window.location.hash.substring(1);
+                showPage(hash || "uvod");
+            }
+
+            window.addEventListener("hashchange", handleHashChange);
+
+
+            // --- LOGIKA D3 RODOKMENU ---
+            const cardW = 140;
+            const cardH = 65;
+            const gapX = 20;
+            const levelGapY = 170;
+
+            const container = d3.select("#tree-container");
+            if (container.empty()) return;
+
+            let allNodesRegistry = [];
+            let isTreeRendered = false;
+
+            window.renderTree = function() {
+                if (isTreeRendered) return;
+                
+                const width = container.node().clientWidth || 1000;
+                const height = 600;
+
+                container.html("");
+
+                const svg = container.append("svg")
+                    .attr("width", "100%")
+                    .attr("height", height);
+
+                const g = svg.append("g");
+
+                const zoom = d3.zoom()
+                    .scaleExtent([0.3, 2])
+                    .filter(event => !event.ctrlKey && event.type !== 'dblclick')
+                    .on("zoom", (event) => g.attr("transform", event.transform));
+                
+                svg.call(zoom);
+
+                d3.json("data.json").then(function(familyTreeData) {
+                    isTreeRendered = true;
+
+                    function calculateSubtreeWidth(node) {
+                        if (!node.children || node.children.length === 0) {
+                            node.subtreeWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                            return node.subtreeWidth;
+                        }
+
+                        let childrenTotalWidth = 0;
+                        node.children.forEach((child, i) => {
+                            childrenTotalWidth += calculateSubtreeWidth(child);
+                            if (i < node.children.length - 1) childrenTotalWidth += gapX;
+                        });
+
+                        const selfWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                        node.subtreeWidth = Math.max(selfWidth, childrenTotalWidth);
+                        return node.subtreeWidth;
+                    }
+
+                    function assignPositions(node, x, y) {
+                        node.y = y;
+
+                        if (!node.children || node.children.length === 0) {
+                            node.x = x + node.subtreeWidth / 2;
+                            return;
+                        }
+
+                        let currentX = x;
+                        node.children.forEach(child => {
+                            assignPositions(child, currentX, y + levelGapY);
+                            currentX += child.subtreeWidth + gapX;
+                        });
+
+                        const firstChild = node.children[0];
+                        const lastChild = node.children[node.children.length - 1];
+                        
+                        const firstChildCenter = firstChild.spouse ? (firstChild.x - 40 - cardW / 2) : firstChild.x;
+                        const lastChildCenter = lastChild.spouse ? (lastChild.x - 40 - cardW / 2) : lastChild.x;
+
+                        node.x = (firstChildCenter + lastChildCenter) / 2;
+                    }
+
+                    function renderNode(node) {
+                        const hasSpouse = !!node.spouse;
+                        const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
+                        const mainY = node.y;
+
+                        const mainCard = drawPersonCard(mainX, mainY, node);
+                        allNodesRegistry.push({ person: node, x: mainX, y: mainY, element: mainCard });
+
+                        let marriageCenterX = node.x;
+                        let marriageCenterY = mainY + cardH / 2;
+
+                        if (hasSpouse) {
+                            const spouseX = mainX + cardW + 80;
+                            marriageCenterX = mainX + cardW + 40;
+
+                            g.append("line")
+                                .attr("class", "link")
+                                .attr("x1", mainX + cardW)
+                                .attr("y1", marriageCenterY)
+                                .attr("x2", spouseX)
+                                .attr("y2", marriageCenterY);
+
+                            if (node.marriage) {
+                                const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
+                                mG.append("rect")
+                                    .attr("class", "marriage-badge")
+                                    .attr("x", -55).attr("y", -10)
+                                    .attr("width", 110).attr("height", 20);
+                                mG.append("text")
+                                    .attr("class", "marriage-text")
+                                    .attr("dy", 3)
+                                    .text(node.marriage);
+                            }
+
+                            const spouseCard = drawPersonCard(spouseX, mainY, node.spouse);
+                            allNodesRegistry.push({ person: node.spouse, x: spouseX, y: mainY, element: spouseCard });
+                        }
+
+                        if (node.children && node.children.length > 0) {
+                            const dropY = mainY + cardH + 30;
+
+                            g.append("line")
+                                .attr("class", "link")
+                                .attr("x1", marriageCenterX).attr("y1", hasSpouse ? marriageCenterY + 10 : mainY + cardH)
+                                .attr("x2", marriageCenterX).attr("y2", dropY);
+
+                            const childCenters = node.children.map(c => c.spouse ? (c.x - 40) : c.x);
+                            const minChildX = d3.min(childCenters);
+                            const maxChildX = d3.max(childCenters);
+
+                            g.append("line")
+                                .attr("class", "link")
+                                .attr("x1", minChildX).attr("y1", dropY)
+                                .attr("x2", maxChildX).attr("y2", dropY);
+
+                            node.children.forEach(child => {
+                                const childCenterX = child.spouse ? (child.x - 40) : child.x;
+                                g.append("line")
+                                    .attr("class", "link")
+                                    .attr("x1", childCenterX).attr("y1", dropY)
+                                    .attr("x2", childCenterX).attr("y2", child.y);
+
+                                renderNode(child);
+                            });
+                        }
+                    }
+
+                    function drawPersonCard(x, y, p) {
+                        const card = g.append("g")
+                            .attr("class", "node-group")
+                            .attr("transform", `translate(${x}, ${y})`);
+
+                        const rect = card.append("rect")
+                            .attr("class", "node-card")
+                            .attr("width", cardW)
+                            .attr("height", cardH);
+
+                        card.append("text")
+                            .attr("class", "node-title")
+                            .attr("x", cardW / 2).attr("y", 20)
+                            .text(p.name);
+
+                        card.append("text")
+                            .attr("class", "node-date")
+                            .attr("x", cardW / 2).attr("y", 37)
+                            .text(p.dates);
+
+                        if (p.death) {
+                            card.append("text")
+                                .attr("class", "node-date")
+                                .attr("x", cardW / 2).attr("y", 52)
+                                .text(p.death);
+                        }
+
+                        card.append("rect")
+                            .attr("width", cardW)
+                            .attr("height", cardH)
+                            .attr("fill", "transparent")
+                            .style("cursor", "pointer")
+                            .on("click", (event) => {
+                                event.stopPropagation();
+                                showDetail(p);
+                            });
+
+                        return rect;
+                    }
+
+                    function showDetail(person) {
+                        document.getElementById("detail-name").innerText = person.name;
+                        const content = document.getElementById("detail-content");
+                        content.innerHTML = "";
+
+                        const details = person.details || {};
+
+                        let html = "";
+                        if (details.birth) {
+                            html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${details.birth}</div>`;
+                        } else {
+                            html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${person.dates || 'neuvedeno'}</div>`;
+                        }
+
+                        if (details.death || person.death) {
+                            html += `<div class="detail-row"><span class="detail-label">Úmrtí:</span> ${details.death || person.death}</div>`;
+                        }
+
+                        if (details.occupation) {
+                            html += `<div class="detail-row"><span class="detail-label">Povolání:</span> ${details.occupation}</div>`;
+                        }
+
+                        if (details.note) {
+                            html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
+                        }
+
+                        if (details.link) {
+                            html += `<div class="detail-row" style="margin-top: 20px; text-align: center;">
+                                        <a href="${details.link}" onclick="openStory('${details.link}')" style="display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+                                            &#128214; Přečíst si příběh
+                                        </a>
+                                    </div>`;
+                        }
+
+                        content.innerHTML = html;
+                        document.getElementById("person-detail-panel").classList.add("active");
+                    }
+
+                    window.closeDetail = function() {
+                        document.getElementById("person-detail-panel").classList.remove("active");
+                    };
+
+                    window.openStory = function(link) {
+                        closeDetail();
+                        showPage("pribehy");
+                        if (link.startsWith("#")) {
+                            setTimeout(() => {
+                                const targetEl = document.querySelector(link);
+                                if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                        }
+                    };
+
+                    svg.on("click", window.closeDetail);
+
+                    calculateSubtreeWidth(familyTreeData);
+                    const startX = (width - familyTreeData.subtreeWidth) / 2;
+                    assignPositions(familyTreeData, startX, 40);
+                    renderNode(familyTreeData);
+
+                    svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
+
+                    // Vyhledávání
+                    const datalist = document.getElementById("people-list");
+                    datalist.innerHTML = "";
+                    allNodesRegistry.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = `${item.person.name} (${item.person.dates})`;
+                        datalist.appendChild(option);
+                    });
+
+                    function performSearch() {
+                        const query = document.getElementById("search-input").value.trim().toLowerCase();
+                        if (!query) return;
+
+                        d3.selectAll(".node-card").classed("highlight", false);
+
+                        const match = allNodesRegistry.find(item => {
+                            const fullName = item.person.name.toLowerCase();
+                            const fullLabel = `${item.person.name} (${item.person.dates})`.toLowerCase();
+                            return fullName.includes(query) || fullLabel.includes(query);
+                        });
+
+                        if (match) {
+                            match.element.classed("highlight", true);
+
+                            const targetScale = 1.2;
+                            const targetX = width / 2 - (match.x + cardW / 2) * targetScale;
+                            const targetY = height / 2 - (match.y + cardH / 2) * targetScale;
+
+                            svg.transition()
+                                .duration(750)
+                                .call(
+                                    zoom.transform,
+                                    d3.zoomIdentity.translate(targetX, targetY).scale(targetScale)
+                                );
+
+                            showDetail(match.person);
+                        } else {
+                            alert("Osoba se zadaným jním nebyla v rodokmenu nalezena.");
+                        }
+                    }
+
+                    document.getElementById("search-btn").onclick = performSearch;
+                    document.getElementById("search-input").onkeypress = function(e) {
+                        if (e.key === "Enter") performSearch();
+                    };
+
+                }).catch(function(error) {
+                    console.error("Chyba při načítání souboru data.json:", error);
+                });
+            };
+
+            handleHashChange();
+        });
     </script>
 </body>
 </html>
