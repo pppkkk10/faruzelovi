@@ -35,6 +35,7 @@
         h1 { color: var(--primary); font-size: 2.6em; margin-bottom: 5px; }
         .subtitle { font-style: italic; color: #666; margin-top: 0; }
 
+        /* Navigace - záložky */
         nav {
             display: flex;
             justify-content: center;
@@ -50,13 +51,29 @@
             color: var(--primary);
             text-decoration: none;
             font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
 
         nav a:hover {
+            background-color: rgba(139, 90, 43, 0.15);
+        }
+
+        /* Aktivní tlačítko v navigaci */
+        nav a.nav-active {
             background-color: var(--primary);
             color: white;
+        }
+
+        /* Všechny sekce/podstránky jsou výchozím stavem skryté */
+        .page-section {
+            display: none;
+        }
+
+        /* Zobrazí se pouze ta sekce, která má třídu .active */
+        .page-section.active {
+            display: block;
         }
 
         .story-card {
@@ -68,7 +85,7 @@
             border-left: 4px solid var(--primary);
         }
 
-        /* Lišta s vyhledáváním */
+        /* Vyhledávací lišta */
         .search-bar {
             display: flex;
             gap: 10px;
@@ -218,7 +235,6 @@
             transition: stroke 0.3s, stroke-width 0.3s;
         }
 
-        /* Zvýraznění nalezené osoby */
         .node-card.highlight {
             stroke: #d9534f !important;
             stroke-width: 4px !important;
@@ -273,18 +289,20 @@
     </header>
 
     <nav>
-        <a href="#uvod">Úvod</a>
-        <a href="#pribehy">Příběhy & Paměti</a>
-        <a href="#rodokmen">Rodokmen</a>
+        <a href="#uvod" class="nav-link" data-target="uvod">Úvod</a>
+        <a href="#pribehy" class="nav-link" data-target="pribehy">Příběhy & Paměti</a>
+        <a href="#rodokmen" class="nav-link" data-target="rodokmen">Rodokmen</a>
     </nav>
 
     <main>
-        <section id="uvod" class="story-card">
+        <!-- Podstránka Úvod -->
+        <section id="uvod" class="page-section story-card">
             <h2>Vítejte v rodinné kronice rodu Faruzelů</h2>
             <p>Tento web slouží jako živá paměť a dokumentace genealogického výzkumu rodu Faruzelů. Naleznete zde příběhy z minulosti, informace o předcích a rodinné fotografie.</p>
         </section>
 
-        <section id="pribehy" class="story-card">
+        <!-- Podstránka Příběhy -->
+        <section id="pribehy" class="page-section story-card">
             <h2>Příběhy & Paměti</h2>
 
             <article id="pribeh-jan-1709" style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 20px;">
@@ -303,10 +321,10 @@
             </article>
         </section>
 
-        <section id="rodokmen" class="story-card">
+        <!-- Podstránka Rodokmen -->
+        <section id="rodokmen" class="page-section story-card">
             <h2>Rodokmen rodu Faruzelů</h2>
             
-            <!-- Vyhledávací lišta -->
             <div class="search-bar">
                 <input type="text" id="search-input" placeholder="Hledat osobu podle jména..." list="people-list">
                 <datalist id="people-list"></datalist>
@@ -333,6 +351,50 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            
+            // --- LOGIKA PŘEPÍNÁNÍ PODSTRÁNEK ---
+            const navLinks = document.querySelectorAll(".nav-link");
+            const sections = document.querySelectorAll(".page-section");
+
+            function showPage(targetId) {
+                // Skrýt všechny sekce
+                sections.forEach(sec => sec.classList.remove("active"));
+                navLinks.forEach(link => link.classList.remove("nav-active"));
+
+                // Najít cílovou sekci podle ID
+                const targetSection = document.getElementById(targetId) || document.getElementById("uvod");
+                targetSection.classList.add("active");
+
+                // Zvýraznit aktivní odkaz v navigaci
+                const activeLink = document.querySelector(`.nav-link[data-target="${targetSection.id}"]`);
+                if (activeLink) activeLink.classList.add("nav-active");
+
+                // Pokud přepneme na rodokmen, přepočítáme jeho velikost (D3 v skryté sekci nemá výšku)
+                if (targetSection.id === "rodokmen" && window.renderTree) {
+                    window.renderTree();
+                }
+            }
+
+            // Zachycení kliknutí na záložky v navigaci
+            navLinks.forEach(link => {
+                link.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const target = this.getAttribute("data-target");
+                    window.location.hash = target;
+                    showPage(target);
+                });
+            });
+
+            // Načtení z zadané URL adrese (např. při obnovení stránky s #rodokmen)
+            function handleHashChange() {
+                const hash = window.location.hash.substring(1);
+                showPage(hash || "uvod");
+            }
+
+            window.addEventListener("hashchange", handleHashChange);
+
+
+            // --- LOGIKA D3 RODOKMENU ---
             const cardW = 140;
             const cardH = 65;
             const gapX = 20;
@@ -341,283 +403,296 @@
             const container = d3.select("#tree-container");
             if (container.empty()) return;
 
-            const width = container.node().clientWidth || 1000;
-            const height = 600;
+            let allNodesRegistry = [];
+            let isTreeRendered = false;
 
-            container.html("");
-
-            const svg = container.append("svg")
-                .attr("width", "100%")
-                .attr("height", height);
-
-            const g = svg.append("g");
-
-            const zoom = d3.zoom()
-                .scaleExtent([0.3, 2])
-                .filter(event => !event.ctrlKey && event.type !== 'dblclick')
-                .on("zoom", (event) => g.attr("transform", event.transform));
-            
-            svg.call(zoom);
-
-            let allNodesRegistry = []; // Pro vyhledávání
-
-            d3.json("data.json").then(function(familyTreeData) {
+            window.renderTree = function() {
+                if (isTreeRendered) return; // Vykreslí se jen jednou
                 
-                function calculateSubtreeWidth(node) {
-                    if (!node.children || node.children.length === 0) {
-                        node.subtreeWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                const width = container.node().clientWidth || 1000;
+                const height = 600;
+
+                container.html("");
+
+                const svg = container.append("svg")
+                    .attr("width", "100%")
+                    .attr("height", height);
+
+                const g = svg.append("g");
+
+                const zoom = d3.zoom()
+                    .scaleExtent([0.3, 2])
+                    .filter(event => !event.ctrlKey && event.type !== 'dblclick')
+                    .on("zoom", (event) => g.attr("transform", event.transform));
+                
+                svg.call(zoom);
+
+                d3.json("data.json").then(function(familyTreeData) {
+                    isTreeRendered = true;
+
+                    function calculateSubtreeWidth(node) {
+                        if (!node.children || node.children.length === 0) {
+                            node.subtreeWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                            return node.subtreeWidth;
+                        }
+
+                        let childrenTotalWidth = 0;
+                        node.children.forEach((child, i) => {
+                            childrenTotalWidth += calculateSubtreeWidth(child);
+                            if (i < node.children.length - 1) childrenTotalWidth += gapX;
+                        });
+
+                        const selfWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                        node.subtreeWidth = Math.max(selfWidth, childrenTotalWidth);
                         return node.subtreeWidth;
                     }
 
-                    let childrenTotalWidth = 0;
-                    node.children.forEach((child, i) => {
-                        childrenTotalWidth += calculateSubtreeWidth(child);
-                        if (i < node.children.length - 1) childrenTotalWidth += gapX;
-                    });
+                    function assignPositions(node, x, y) {
+                        node.y = y;
 
-                    const selfWidth = node.spouse ? (cardW * 2 + 80) : cardW;
-                    node.subtreeWidth = Math.max(selfWidth, childrenTotalWidth);
-                    return node.subtreeWidth;
-                }
-
-                function assignPositions(node, x, y) {
-                    node.y = y;
-
-                    if (!node.children || node.children.length === 0) {
-                        node.x = x + node.subtreeWidth / 2;
-                        return;
-                    }
-
-                    let currentX = x;
-                    node.children.forEach(child => {
-                        assignPositions(child, currentX, y + levelGapY);
-                        currentX += child.subtreeWidth + gapX;
-                    });
-
-                    const firstChild = node.children[0];
-                    const lastChild = node.children[node.children.length - 1];
-                    
-                    const firstChildCenter = firstChild.spouse ? (firstChild.x - 40 - cardW / 2) : firstChild.x;
-                    const lastChildCenter = lastChild.spouse ? (lastChild.x - 40 - cardW / 2) : lastChild.x;
-
-                    node.x = (firstChildCenter + lastChildCenter) / 2;
-                }
-
-                function renderNode(node) {
-                    const hasSpouse = !!node.spouse;
-                    const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
-                    const mainY = node.y;
-
-                    // Registrace hlavního uzlu
-                    const mainCard = drawPersonCard(mainX, mainY, node);
-                    allNodesRegistry.push({ person: node, x: mainX, y: mainY, element: mainCard });
-
-                    let marriageCenterX = node.x;
-                    let marriageCenterY = mainY + cardH / 2;
-
-                    if (hasSpouse) {
-                        const spouseX = mainX + cardW + 80;
-                        marriageCenterX = mainX + cardW + 40;
-
-                        g.append("line")
-                            .attr("class", "link")
-                            .attr("x1", mainX + cardW)
-                            .attr("y1", marriageCenterY)
-                            .attr("x2", spouseX)
-                            .attr("y2", marriageCenterY);
-
-                        if (node.marriage) {
-                            const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
-                            mG.append("rect")
-                                .attr("class", "marriage-badge")
-                                .attr("x", -55).attr("y", -10)
-                                .attr("width", 110).attr("height", 20);
-                            mG.append("text")
-                                .attr("class", "marriage-text")
-                                .attr("dy", 3)
-                                .text(node.marriage);
+                        if (!node.children || node.children.length === 0) {
+                            node.x = x + node.subtreeWidth / 2;
+                            return;
                         }
 
-                        const spouseCard = drawPersonCard(spouseX, mainY, node.spouse);
-                        allNodesRegistry.push({ person: node.spouse, x: spouseX, y: mainY, element: spouseCard });
+                        let currentX = x;
+                        node.children.forEach(child => {
+                            assignPositions(child, currentX, y + levelGapY);
+                            currentX += child.subtreeWidth + gapX;
+                        });
+
+                        const firstChild = node.children[0];
+                        const lastChild = node.children[node.children.length - 1];
+                        
+                        const firstChildCenter = firstChild.spouse ? (firstChild.x - 40 - cardW / 2) : firstChild.x;
+                        const lastChildCenter = lastChild.spouse ? (lastChild.x - 40 - cardW / 2) : lastChild.x;
+
+                        node.x = (firstChildCenter + lastChildCenter) / 2;
                     }
 
-                    if (node.children && node.children.length > 0) {
-                        const dropY = mainY + cardH + 30;
+                    function renderNode(node) {
+                        const hasSpouse = !!node.spouse;
+                        const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
+                        const mainY = node.y;
 
-                        g.append("line")
-                            .attr("class", "link")
-                            .attr("x1", marriageCenterX).attr("y1", hasSpouse ? marriageCenterY + 10 : mainY + cardH)
-                            .attr("x2", marriageCenterX).attr("y2", dropY);
+                        const mainCard = drawPersonCard(mainX, mainY, node);
+                        allNodesRegistry.push({ person: node, x: mainX, y: mainY, element: mainCard });
 
-                        const childCenters = node.children.map(c => c.spouse ? (c.x - 40) : c.x);
-                        const minChildX = d3.min(childCenters);
-                        const maxChildX = d3.max(childCenters);
+                        let marriageCenterX = node.x;
+                        let marriageCenterY = mainY + cardH / 2;
 
-                        g.append("line")
-                            .attr("class", "link")
-                            .attr("x1", minChildX).attr("y1", dropY)
-                            .attr("x2", maxChildX).attr("y2", dropY);
+                        if (hasSpouse) {
+                            const spouseX = mainX + cardW + 80;
+                            marriageCenterX = mainX + cardW + 40;
 
-                        node.children.forEach(child => {
-                            const childCenterX = child.spouse ? (child.x - 40) : child.x;
                             g.append("line")
                                 .attr("class", "link")
-                                .attr("x1", childCenterX).attr("y1", dropY)
-                                .attr("x2", childCenterX).attr("y2", child.y);
+                                .attr("x1", mainX + cardW)
+                                .attr("y1", marriageCenterY)
+                                .attr("x2", spouseX)
+                                .attr("y2", marriageCenterY);
 
-                            renderNode(child);
-                        });
+                            if (node.marriage) {
+                                const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
+                                mG.append("rect")
+                                    .attr("class", "marriage-badge")
+                                    .attr("x", -55).attr("y", -10)
+                                    .attr("width", 110).attr("height", 20);
+                                mG.append("text")
+                                    .attr("class", "marriage-text")
+                                    .attr("dy", 3)
+                                    .text(node.marriage);
+                            }
+
+                            const spouseCard = drawPersonCard(spouseX, mainY, node.spouse);
+                            allNodesRegistry.push({ person: node.spouse, x: spouseX, y: mainY, element: spouseCard });
+                        }
+
+                        if (node.children && node.children.length > 0) {
+                            const dropY = mainY + cardH + 30;
+
+                            g.append("line")
+                                .attr("class", "link")
+                                .attr("x1", marriageCenterX).attr("y1", hasSpouse ? marriageCenterY + 10 : mainY + cardH)
+                                .attr("x2", marriageCenterX).attr("y2", dropY);
+
+                            const childCenters = node.children.map(c => c.spouse ? (c.x - 40) : c.x);
+                            const minChildX = d3.min(childCenters);
+                            const maxChildX = d3.max(childCenters);
+
+                            g.append("line")
+                                .attr("class", "link")
+                                .attr("x1", minChildX).attr("y1", dropY)
+                                .attr("x2", maxChildX).attr("y2", dropY);
+
+                            node.children.forEach(child => {
+                                const childCenterX = child.spouse ? (child.x - 40) : child.x;
+                                g.append("line")
+                                    .attr("class", "link")
+                                    .attr("x1", childCenterX).attr("y1", dropY)
+                                    .attr("x2", childCenterX).attr("y2", child.y);
+
+                                renderNode(child);
+                            });
+                        }
                     }
-                }
 
-                function drawPersonCard(x, y, p) {
-                    const card = g.append("g")
-                        .attr("class", "node-group")
-                        .attr("transform", `translate(${x}, ${y})`);
+                    function drawPersonCard(x, y, p) {
+                        const card = g.append("g")
+                            .attr("class", "node-group")
+                            .attr("transform", `translate(${x}, ${y})`);
 
-                    const rect = card.append("rect")
-                        .attr("class", "node-card")
-                        .attr("width", cardW)
-                        .attr("height", cardH);
+                        const rect = card.append("rect")
+                            .attr("class", "node-card")
+                            .attr("width", cardW)
+                            .attr("height", cardH);
 
-                    card.append("text")
-                        .attr("class", "node-title")
-                        .attr("x", cardW / 2).attr("y", 20)
-                        .text(p.name);
+                        card.append("text")
+                            .attr("class", "node-title")
+                            .attr("x", cardW / 2).attr("y", 20)
+                            .text(p.name);
 
-                    card.append("text")
-                        .attr("class", "node-date")
-                        .attr("x", cardW / 2).attr("y", 37)
-                        .text(p.dates);
-
-                    if (p.death) {
                         card.append("text")
                             .attr("class", "node-date")
-                            .attr("x", cardW / 2).attr("y", 52)
-                            .text(p.death);
+                            .attr("x", cardW / 2).attr("y", 37)
+                            .text(p.dates);
+
+                        if (p.death) {
+                            card.append("text")
+                                .attr("class", "node-date")
+                                .attr("x", cardW / 2).attr("y", 52)
+                                .text(p.death);
+                        }
+
+                        card.append("rect")
+                            .attr("width", cardW)
+                            .attr("height", cardH)
+                            .attr("fill", "transparent")
+                            .style("cursor", "pointer")
+                            .on("click", (event) => {
+                                event.stopPropagation();
+                                showDetail(p);
+                            });
+
+                        return rect;
                     }
 
-                    card.append("rect")
-                        .attr("width", cardW)
-                        .attr("height", cardH)
-                        .attr("fill", "transparent")
-                        .style("cursor", "pointer")
-                        .on("click", (event) => {
-                            event.stopPropagation();
-                            showDetail(p);
-                        });
+                    function showDetail(person) {
+                        document.getElementById("detail-name").innerText = person.name;
+                        const content = document.getElementById("detail-content");
+                        content.innerHTML = "";
 
-                    return rect;
-                }
+                        const details = person.details || {};
 
-                function showDetail(person) {
-                    document.getElementById("detail-name").innerText = person.name;
-                    const content = document.getElementById("detail-content");
-                    content.innerHTML = "";
+                        let html = "";
+                        if (details.birth) {
+                            html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${details.birth}</div>`;
+                        } else {
+                            html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${person.dates || 'neuvedeno'}</div>`;
+                        }
 
-                    const details = person.details || {};
+                        if (details.death || person.death) {
+                            html += `<div class="detail-row"><span class="detail-label">Úmrtí:</span> ${details.death || person.death}</div>`;
+                        }
 
-                    let html = "";
-                    if (details.birth) {
-                        html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${details.birth}</div>`;
-                    } else {
-                        html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${person.dates || 'neuvedeno'}</div>`;
+                        if (details.occupation) {
+                            html += `<div class="detail-row"><span class="detail-label">Povolání:</span> ${details.occupation}</div>`;
+                        }
+
+                        if (details.note) {
+                            html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
+                        }
+
+                        if (details.link) {
+                            html += `<div class="detail-row" style="margin-top: 20px; text-align: center;">
+                                        <a href="${details.link}" onclick="openStory('${details.link}')" style="display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+                                            &#128214; Přečíst si příběh
+                                        </a>
+                                    </div>`;
+                        }
+
+                        content.innerHTML = html;
+                        document.getElementById("person-detail-panel").classList.add("active");
                     }
 
-                    if (details.death || person.death) {
-                        html += `<div class="detail-row"><span class="detail-label">Úmrtí:</span> ${details.death || person.death}</div>`;
-                    }
+                    window.closeDetail = function() {
+                        document.getElementById("person-detail-panel").classList.remove("active");
+                    };
 
-                    if (details.occupation) {
-                        html += `<div class="detail-row"><span class="detail-label">Povolání:</span> ${details.occupation}</div>`;
-                    }
+                    // Funkce pro proklik z detailu osoby přímo do záložky Příběhy
+                    window.openStory = function(link) {
+                        closeDetail();
+                        showPage("pribehy");
+                        if (link.startsWith("#")) {
+                            setTimeout(() => {
+                                const targetEl = document.querySelector(link);
+                                if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                        }
+                    };
 
-                    if (details.note) {
-                        html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
-                    }
+                    svg.on("click", window.closeDetail);
 
-                    if (details.link) {
-                        html += `<div class="detail-row" style="margin-top: 20px; text-align: center;">
-                                    <a href="${details.link}" onclick="closeDetail()" style="display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
-                                        &#128214; Přečíst si příběh
-                                    </a>
-                                </div>`;
-                    }
+                    calculateSubtreeWidth(familyTreeData);
+                    const startX = (width - familyTreeData.subtreeWidth) / 2;
+                    assignPositions(familyTreeData, startX, 40);
+                    renderNode(familyTreeData);
 
-                    content.innerHTML = html;
-                    document.getElementById("person-detail-panel").classList.add("active");
-                }
+                    svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
 
-                window.closeDetail = function() {
-                    document.getElementById("person-detail-panel").classList.remove("active");
-                };
-
-                svg.on("click", window.closeDetail);
-
-                // Spuštění výpočtu a vykreslení
-                calculateSubtreeWidth(familyTreeData);
-                const startX = (width - familyTreeData.subtreeWidth) / 2;
-                assignPositions(familyTreeData, startX, 40);
-                renderNode(familyTreeData);
-
-                // Výchozí pozice stromu
-                svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
-
-                // --- LOGIKA VYHLEDÁVÁNÍ ---
-                const datalist = document.getElementById("people-list");
-                allNodesRegistry.forEach(item => {
-                    const option = document.createElement("option");
-                    option.value = `${item.person.name} (${item.person.dates})`;
-                    datalist.appendChild(option);
-                });
-
-                function performSearch() {
-                    const query = document.getElementById("search-input").value.trim().toLowerCase();
-                    if (!query) return;
-
-                    // Odstranění předchozího zvýraznění
-                    d3.selectAll(".node-card").classed("highlight", false);
-
-                    // Najít osobu v registru
-                    const match = allNodesRegistry.find(item => {
-                        const fullName = item.person.name.toLowerCase();
-                        const fullLabel = `${item.person.name} (${item.person.dates})`.toLowerCase();
-                        return fullName.includes(query) || fullLabel.includes(query);
+                    // Vyhledávání
+                    const datalist = document.getElementById("people-list");
+                    datalist.innerHTML = "";
+                    allNodesRegistry.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = `${item.person.name} (${item.person.dates})`;
+                        datalist.appendChild(option);
                     });
 
-                    if (match) {
-                        // Zvýraznit kartu
-                        match.element.classed("highlight", true);
+                    function performSearch() {
+                        const query = document.getElementById("search-input").value.trim().toLowerCase();
+                        if (!query) return;
 
-                        // Výpočet středu obrazovky pro vybranou osobu
-                        const targetScale = 1.2;
-                        const targetX = width / 2 - (match.x + cardW / 2) * targetScale;
-                        const targetY = height / 2 - (match.y + cardH / 2) * targetScale;
+                        d3.selectAll(".node-card").classed("highlight", false);
 
-                        // Plynulý přechod (animace 750ms)
-                        svg.transition()
-                            .duration(750)
-                            .call(
-                                zoom.transform,
-                                d3.zoomIdentity.translate(targetX, targetY).scale(targetScale)
-                            );
+                        const match = allNodesRegistry.find(item => {
+                            const fullName = item.person.name.toLowerCase();
+                            const fullLabel = `${item.person.name} (${item.person.dates})`.toLowerCase();
+                            return fullName.includes(query) || fullLabel.includes(query);
+                        });
 
-                        // Otevřít detail
-                        showDetail(match.person);
-                    } else {
-                        alert("Osoba se zadaným jménem nebyla v rodokmenu nalezena.");
+                        if (match) {
+                            match.element.classed("highlight", true);
+
+                            const targetScale = 1.2;
+                            const targetX = width / 2 - (match.x + cardW / 2) * targetScale;
+                            const targetY = height / 2 - (match.y + cardH / 2) * targetScale;
+
+                            svg.transition()
+                                .duration(750)
+                                .call(
+                                    zoom.transform,
+                                    d3.zoomIdentity.translate(targetX, targetY).scale(targetScale)
+                                );
+
+                            showDetail(match.person);
+                        } else {
+                            alert("Osoba se zadaným jménem nebyla v rodokmenu nalezena.");
+                        }
                     }
-                }
 
-                document.getElementById("search-btn").addEventListener("click", performSearch);
-                document.getElementById("search-input").addEventListener("keypress", function(e) {
-                    if (e.key === "Enter") performSearch();
+                    document.getElementById("search-btn").onclick = performSearch;
+                    document.getElementById("search-input").onkeypress = function(e) {
+                        if (e.key === "Enter") performSearch();
+                    };
+
+                }).catch(function(error) {
+                    console.error("Chyba při načítání souboru data.json:", error);
                 });
+            };
 
-            }).catch(function(error) {
-                console.error("Chyba při načítání souboru data.json:", error);
-            });
+            // Spustit výchozí zobrazení záložky podle URL
+            handleHashChange();
         });
     </script>
 </body>
