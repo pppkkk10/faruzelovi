@@ -68,6 +68,44 @@
             border-left: 4px solid var(--primary);
         }
 
+        /* Lišta s vyhledáváním */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px 14px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(139, 90, 43, 0.3);
+        }
+
+        .search-bar button {
+            padding: 10px 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-bar button:hover {
+            background: #6e4620;
+        }
+
         .tree-wrapper {
             position: relative;
             width: 100%;
@@ -177,6 +215,14 @@
             stroke-width: 2px;
             rx: 6px;
             ry: 6px;
+            transition: stroke 0.3s, stroke-width 0.3s;
+        }
+
+        /* Zvýraznění nalezené osoby */
+        .node-card.highlight {
+            stroke: #d9534f !important;
+            stroke-width: 4px !important;
+            fill: #fdf2f2 !important;
         }
 
         .marriage-badge {
@@ -259,6 +305,14 @@
 
         <section id="rodokmen" class="story-card">
             <h2>Rodokmen rodu Faruzelů</h2>
+            
+            <!-- Vyhledávací lišta -->
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Hledat osobu podle jména..." list="people-list">
+                <datalist id="people-list"></datalist>
+                <button id="search-btn">Vyhledat</button>
+            </div>
+
             <div class="tree-wrapper">
                 <div id="tree-container"></div>
                 <div id="person-detail-panel">
@@ -269,7 +323,7 @@
                     <div id="detail-content"></div>
                 </div>
             </div>
-            <div class="tree-hint">Tip: Klikněte na kartu osoby pro zobrazení detailů. Rodokmenem můžete posouvat myší a přibližovat kolečkem.</div>
+            <div class="tree-hint">Tip: Můžete vyhledat jméno nahoře. Rodokmenem lze také posouvat myší a přibližovat kolečkem.</div>
         </section>
     </main>
 
@@ -305,7 +359,8 @@
             
             svg.call(zoom);
 
-            // Načtení dat ze souboru data.json
+            let allNodesRegistry = []; // Pro vyhledávání
+
             d3.json("data.json").then(function(familyTreeData) {
                 
                 function calculateSubtreeWidth(node) {
@@ -353,7 +408,9 @@
                     const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
                     const mainY = node.y;
 
-                    drawPersonCard(mainX, mainY, node);
+                    // Registrace hlavního uzlu
+                    const mainCard = drawPersonCard(mainX, mainY, node);
+                    allNodesRegistry.push({ person: node, x: mainX, y: mainY, element: mainCard });
 
                     let marriageCenterX = node.x;
                     let marriageCenterY = mainY + cardH / 2;
@@ -381,7 +438,8 @@
                                 .text(node.marriage);
                         }
 
-                        drawPersonCard(spouseX, mainY, node.spouse);
+                        const spouseCard = drawPersonCard(spouseX, mainY, node.spouse);
+                        allNodesRegistry.push({ person: node.spouse, x: spouseX, y: mainY, element: spouseCard });
                     }
 
                     if (node.children && node.children.length > 0) {
@@ -418,7 +476,7 @@
                         .attr("class", "node-group")
                         .attr("transform", `translate(${x}, ${y})`);
 
-                    card.append("rect")
+                    const rect = card.append("rect")
                         .attr("class", "node-card")
                         .attr("width", cardW)
                         .attr("height", cardH);
@@ -449,6 +507,8 @@
                             event.stopPropagation();
                             showDetail(p);
                         });
+
+                    return rect;
                 }
 
                 function showDetail(person) {
@@ -501,7 +561,59 @@
                 assignPositions(familyTreeData, startX, 40);
                 renderNode(familyTreeData);
 
+                // Výchozí pozice stromu
                 svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
+
+                // --- LOGIKA VYHLEDÁVÁNÍ ---
+                const datalist = document.getElementById("people-list");
+                allNodesRegistry.forEach(item => {
+                    const option = document.createElement("option");
+                    option.value = `${item.person.name} (${item.person.dates})`;
+                    datalist.appendChild(option);
+                });
+
+                function performSearch() {
+                    const query = document.getElementById("search-input").value.trim().toLowerCase();
+                    if (!query) return;
+
+                    // Odstranění předchozího zvýraznění
+                    d3.selectAll(".node-card").classed("highlight", false);
+
+                    // Najít osobu v registru
+                    const match = allNodesRegistry.find(item => {
+                        const fullName = item.person.name.toLowerCase();
+                        const fullLabel = `${item.person.name} (${item.person.dates})`.toLowerCase();
+                        return fullName.includes(query) || fullLabel.includes(query);
+                    });
+
+                    if (match) {
+                        // Zvýraznit kartu
+                        match.element.classed("highlight", true);
+
+                        // Výpočet středu obrazovky pro vybranou osobu
+                        const targetScale = 1.2;
+                        const targetX = width / 2 - (match.x + cardW / 2) * targetScale;
+                        const targetY = height / 2 - (match.y + cardH / 2) * targetScale;
+
+                        // Plynulý přechod (animace 750ms)
+                        svg.transition()
+                            .duration(750)
+                            .call(
+                                zoom.transform,
+                                d3.zoomIdentity.translate(targetX, targetY).scale(targetScale)
+                            );
+
+                        // Otevřít detail
+                        showDetail(match.person);
+                    } else {
+                        alert("Osoba se zadaným jménem nebyla v rodokmenu nalezena.");
+                    }
+                }
+
+                document.getElementById("search-btn").addEventListener("click", performSearch);
+                document.getElementById("search-input").addEventListener("keypress", function(e) {
+                    if (e.key === "Enter") performSearch();
+                });
 
             }).catch(function(error) {
                 console.error("Chyba při načítání souboru data.json:", error);
