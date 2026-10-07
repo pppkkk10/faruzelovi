@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Faruzelovi — genealogický výzkum rodu Faruzelů</title>
+    
     <!-- Načtení knihovny D3.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- Leaflet CSS a JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
             --primary: #8b5a2b;
@@ -399,6 +404,13 @@
             <div class="tree-hint">Tip: Můžete vyhledat jméno nahoře. Rodokmenem lze také posouvat myší a přibližovat kolečkem.</div>
         </section>
 
+           <!-- Podstránka Mapa míst předků-->
+        <section id="mapa" class="tab-content">
+  <h2>Mapa míst předků</h2>
+  <p>Prohlédněte si sídla a místa, kde žili naši předci.</p>
+  <div id="map" style="height: 500px; border-radius: 8px; margin-top: 15px;"></div>
+    </section>
+        
         <!-- Podstránka Zapojte se -->
         <section id="zapojte-se" class="page-section story-card">
             <h2>Zapojte se do tvorby rodokmenu</h2>
@@ -787,6 +799,34 @@
 
             handleHashChange();
         });
+        function nactiMapu(osoby) {
+  // Vytvoření mapy
+  const map = L.map('map').setView([49.8, 18.2], 9); // Výchozí střed
+
+  // Načtení podkladových map (OpenStreetMap)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const markers = [];
+
+  // Procházení osob a přidávání špendlíků
+  osoby.forEach(osoba => {
+    if (osoba.lat && osoba.lng) {
+      const marker = L.marker([osoba.lat, osoba.lng])
+        .addTo(map)
+        .bindPopup(`<b>${osoba.jmeno}</b><br>Místo: ${osoba.misto}`);
+      
+      markers.push(marker);
+    }
+  });
+
+  // Pokud máme alespoň jeden špendlík, přizpůsobíme přiblížení mapy
+  if (markers.length > 0) {
+    const group = new L.featureGroup(markers);
+    map.fitBounds(group.getBounds().pad(0.1));
+  }
+}
     </script>
 </body>
 </html>
