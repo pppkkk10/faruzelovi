@@ -3,14 +3,13 @@
   "dates": "* cca 1709",
   "death": "† 1799",
   "details": {
-    "birth": "cca 1709",
-    "birth place": "Vendryně",
+    "birth": "cca 1709 Vendryně",
     "lat": 49.6666,
     "lng": 18.7131,
     "death": "9. 2. 1799 (ve věku 90 let) Mistřovice 6",
     "occupation": "Zahradník / zemědělec",
-    "note": "Zakladatel větvě rodu Faruzelů ve Vendryni a Těšíně.",
-    "link": "#pribeh-jan-1709"
+    "note": "Zakladatel větvě rodu Faruzelů v Mistřovicích.",
+    "link": "#pribeh-jan-1709",
   },
   "spouse": {
     "name": "Zuzana Folwarczny",
@@ -18,36 +17,41 @@
     "death": "† 1783",
     "details": {
       "birth": "cca 1710, Mistřovice",
-      "death": "16. 3. 1783 Mistřovice 6"
+      "death": "16. 3. 1783 Mistřovice 6",
+      "lat": 49.6666,
+      "lng": 18.7131,
+      "occupation": "Zahradník / zemědělec",
+      "note": "",
+      "link": "#pribeh-jan-1709",
     }
   },
   "marriage": "5. 5. 1733 Těšín",
   "children": [
     {
-      "name": "Jan",
+      "name": "Jan Faruzel",
       "dates": "* 1733",
-      "details": { "birth": "1733, Vendryně" }
+      "details": { "birth": "1733, Mistřovice" }
     },
     {
-      "name": "Zuzana",
+      "name": "Zuzana Faruzel",
       "dates": "* 1736",
-      "details": { "birth": "1736, Vendryně" }
+      "details": { "birth": "1736, Mistřovice" }
     },
     {
-      "name": "Adam",
+      "name": "Adam Faruzel",
       "dates": "* 1738",
       "death": "† 1794",
-      "details": { "birth": "1738", "death": "1794" }
+      "details": { "birth": "1738, Mistřovice", "death": "1794" }
     },
     {
-      "name": "Marie",
+      "name": "Marie Faruzel",
       "dates": "* 1745",
-      "details": { "birth": "1745" }
+      "details": { "birth": "1745, Mistřovice" }
     },
     {
-      "name": "Jiří",
+      "name": "Jiří Faruzel",
       "dates": "* 1747",
-      "details": { "birth": "1747", "occupation": "Sedlák" },
+      "details": { "birth": "1747, Mistřovice", "occupation": "Sedlák" },
       "spouse": {
         "name": "Elizabeta Štefek",
         "dates": "* 1750",
@@ -60,50 +64,50 @@
       "marriage": "22. 5. 1770 Těšín",
       "children": [
         {
-          "name": "Zuzana",
+          "name": "Zuzana Faruzel",
           "dates": "* 1771",
           "death": "† 1773",
           "details": { "birth": "1771", "death": "1773" }
         },
         {
-          "name": "Anna",
+          "name": "Anna Faruzel",
           "dates": "* 1773",
           "details": { "birth": "1773" }
         },
         {
-          "name": "Mariana",
+          "name": "Mariana Faruzel",
           "dates": "* 1774",
           "death": "† 1780",
           "details": { "birth": "1774", "death": "1780" }
         },
         {
-          "name": "Jan",
+          "name": "Jan Faruzel",
           "dates": "* 1777",
           "death": "† 1779",
           "details": { "birth": "1777", "death": "1779" }
         },
         {
-          "name": "Pavel",
+          "name": "Pavel Faruzel",
           "dates": "* 1779",
           "death": "† 1836",
           "details": { "birth": "1779", "death": "1836" }
         },
         {
-          "name": "Jiří",
+          "name": "Jiří Faruzel",
           "dates": "* 1782",
           "details": { "birth": "1782" }
         }
       ]
     },
     {
-      "name": "Pavel",
-      "dates": "* 1751",
+      "name": "Pavel Faruzel",
+      "dates": "* 1751, Mistřovice",
       "death": "† 1828",
       "details": { "birth": "1751", "death": "1828" }
     },
     {
-      "name": "Eva",
-      "dates": "* 1753",
+      "name": "Eva Faruzel",
+      "dates": "* 1753, Mistřovice",
       "details": { "birth": "1753" }
     }
   ]
