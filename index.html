@@ -710,6 +710,13 @@
                             html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
                         }
 
+                        if (details.photo) {
+                            html += `
+                                <div style="text-align: center; margin-bottom: 15px;">
+                                    <img src="${details.photo}" alt="${person.name}" class="responsive-img" style="max-width: 100%; max-height: 180px; border-radius: 6px; object-fit: cover;">
+                                    </div>
+        `;
+               }
                         if (details.link) {
                             html += `<div class="detail-row" style="margin-top: 20px; text-align: center;">
                                         <a href="${details.link}" onclick="openStory('${details.link}')" style="display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
