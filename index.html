@@ -508,36 +508,343 @@
         <p>&copy; Rod Faruzelů — Genealogický výzkum</p>
     </footer>
 
-    <script>
-       document.addEventListener("DOMContentLoaded", function() {
+   <script>
+// --- GLOBALNÍ PROMĚNNÉ A REGISTR PRO D3 RODOKMEN ---
+const cardW = 140;
+const cardH = 65;
+const gapX = 20;
+const levelGapY = 170;
 
-    // --- LOGIKA PŘEPÍNÁNÍ PODSTRÁNEK ---
+let allNodesRegistry = [];
+let isTreeRendered = false;
+
+// --- FUNKCE PRO VYKRESLENÍ D3 STROMU ---
+window.renderTree = function() {
+    const container = d3.select("#tree-container");
+    if (container.empty() || isTreeRendered) return;
+
+    const width = container.node().clientWidth || 1000;
+    const height = 600;
+
+    container.html("");
+
+    const svg = container.append("svg")
+        .attr("width", "100%")
+        .attr("height", height);
+
+    const g = svg.append("g");
+
+    const zoom = d3.zoom()
+        .scaleExtent([0.3, 2])
+        .filter(event => !event.ctrlKey && event.type !== 'dblclick')
+        .on("zoom", (event) => g.attr("transform", event.transform));
+    
+    svg.call(zoom);
+
+    d3.json("data.json").then(function(familyTreeData) {
+        isTreeRendered = true;
+
+        function calculateSubtreeWidth(node) {
+            if (!node.children || node.children.length === 0) {
+                node.subtreeWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+                return node.subtreeWidth;
+            }
+
+            let childrenTotalWidth = 0;
+            node.children.forEach((child, i) => {
+                childrenTotalWidth += calculateSubtreeWidth(child);
+                if (i < node.children.length - 1) childrenTotalWidth += gapX;
+            });
+
+            const selfWidth = node.spouse ? (cardW * 2 + 80) : cardW;
+            node.subtreeWidth = Math.max(selfWidth, childrenTotalWidth);
+            return node.subtreeWidth;
+        }
+
+        function assignPositions(node, x, y) {
+            node.y = y;
+
+            if (!node.children || node.children.length === 0) {
+                node.x = x + node.subtreeWidth / 2;
+                return;
+            }
+
+            let currentX = x;
+            node.children.forEach(child => {
+                assignPositions(child, currentX, y + levelGapY);
+                currentX += child.subtreeWidth + gapX;
+            });
+
+            const firstChild = node.children[0];
+            const lastChild = node.children[node.children.length - 1];
+            
+            const firstChildCenter = firstChild.spouse ? (firstChild.x - 40 - cardW / 2) : firstChild.x;
+            const lastChildCenter = lastChild.spouse ? (lastChild.x - 40 - cardW / 2) : lastChild.x;
+
+            node.x = (firstChildCenter + lastChildCenter) / 2;
+        }
+
+        function renderNode(node) {
+            const hasSpouse = !!node.spouse;
+            const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
+            const mainY = node.y;
+
+            const mainCard = drawPersonCard(mainX, mainY, node);
+            allNodesRegistry.push({ person: node, x: mainX, y: mainY, element: mainCard });
+
+            let marriageCenterX = node.x;
+            let marriageCenterY = mainY + cardH / 2;
+
+            if (hasSpouse) {
+                const spouseX = mainX + cardW + 80;
+                marriageCenterX = mainX + cardW + 40;
+
+                g.append("line")
+                    .attr("class", "link")
+                    .attr("x1", mainX + cardW)
+                    .attr("y1", marriageCenterY)
+                    .attr("x2", spouseX)
+                    .attr("y2", marriageCenterY);
+
+                if (node.marriage) {
+                    const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
+                    mG.append("rect")
+                        .attr("class", "marriage-badge")
+                        .attr("x", -55).attr("y", -10)
+                        .attr("width", 110).attr("height", 20);
+                    mG.append("text")
+                        .attr("class", "marriage-text")
+                        .attr("dy", 3)
+                        .text(node.marriage);
+                }
+
+                const spouseCard = drawPersonCard(spouseX, mainY, node.spouse);
+                allNodesRegistry.push({ person: node.spouse, x: spouseX, y: mainY, element: spouseCard });
+            }
+
+            if (node.children && node.children.length > 0) {
+                const dropY = mainY + cardH + 30;
+
+                g.append("line")
+                    .attr("class", "link")
+                    .attr("x1", marriageCenterX).attr("y1", hasSpouse ? marriageCenterY + 10 : mainY + cardH)
+                    .attr("x2", marriageCenterX).attr("y2", dropY);
+
+                const childCenters = node.children.map(c => c.spouse ? (c.x - 40) : c.x);
+                const minChildX = d3.min(childCenters);
+                const maxChildX = d3.max(childCenters);
+
+                g.append("line")
+                    .attr("class", "link")
+                    .attr("x1", minChildX).attr("y1", dropY)
+                    .attr("x2", maxChildX).attr("y2", dropY);
+
+                node.children.forEach(child => {
+                    const childCenterX = child.spouse ? (child.x - 40) : child.x;
+                    g.append("line")
+                        .attr("class", "link")
+                        .attr("x1", childCenterX).attr("y1", dropY)
+                        .attr("x2", childCenterX).attr("y2", child.y);
+
+                    renderNode(child);
+                });
+            }
+        }
+
+        function drawPersonCard(x, y, p) {
+            const card = g.append("g")
+                .attr("class", "node-group")
+                .attr("transform", `translate(${x}, ${y})`);
+
+            const rect = card.append("rect")
+                .attr("class", "node-card")
+                .attr("width", cardW)
+                .attr("height", cardH);
+
+            card.append("text")
+                .attr("class", "node-title")
+                .attr("x", cardW / 2).attr("y", 20)
+                .text(p.name);
+
+            card.append("text")
+                .attr("class", "node-date")
+                .attr("x", cardW / 2).attr("y", 37)
+                .text(p.dates);
+
+            if (p.death) {
+                card.append("text")
+                    .attr("class", "node-date")
+                    .attr("x", cardW / 2).attr("y", 52)
+                    .text(p.death);
+            }
+
+            card.append("rect")
+                .attr("width", cardW)
+                .attr("height", cardH)
+                .attr("fill", "transparent")
+                .style("cursor", "pointer")
+                .on("click", (event) => {
+                    event.stopPropagation();
+                    showDetail(p);
+                });
+
+            return rect;
+        }
+
+        function showDetail(person) {
+            document.getElementById("detail-name").innerText = person.name;
+            const content = document.getElementById("detail-content");
+            content.innerHTML = "";
+
+            const details = person.details || {};
+
+            let html = "";
+            if (details.birth) {
+                html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${details.birth}</div>`;
+            } else {
+                html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${person.dates || 'neuvedeno'}</div>`;
+            }
+
+            if (details.death || person.death) {
+                html += `<div class="detail-row"><span class="detail-label">Úmrtí:</span> ${details.death || person.death}</div>`;
+            }
+
+            if (details.occupation) {
+                html += `<div class="detail-row"><span class="detail-label">Povolání:</span> ${details.occupation}</div>`;
+            }
+
+            if (details.note) {
+                html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
+            }
+
+            if (details.photo) {
+                html += `
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <img src="${details.photo}" alt="${person.name}" class="responsive-img" style="max-width: 100%; max-height: 180px; border-radius: 6px; object-fit: cover;">
+                    </div>
+                `;
+            }
+            if (details.link) {
+                html += `<div class="detail-row" style="margin-top: 20px; text-align: center;">
+                            <a href="${details.link}" onclick="openStory('${details.link}')" style="display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+                                &#128214; Přečíst si příběh
+                            </a>
+                        </div>`;
+            }
+
+            content.innerHTML = html;
+            document.getElementById("person-detail-panel").classList.add("active");
+        }
+
+        window.closeDetail = function() {
+            const panel = document.getElementById("person-detail-panel");
+            if (panel) panel.classList.remove("active");
+        };
+
+        window.openStory = function(link) {
+            closeDetail();
+            if (window.showPage) window.showPage("pribehy");
+            if (link.startsWith("#")) {
+                setTimeout(() => {
+                    const targetEl = document.querySelector(link);
+                    if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }
+        };
+
+        svg.on("click", window.closeDetail);
+
+        calculateSubtreeWidth(familyTreeData);
+        const startX = (width - familyTreeData.subtreeWidth) / 2;
+        assignPositions(familyTreeData, startX, 40);
+        renderNode(familyTreeData);
+
+        svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
+
+        // Vyhledávání
+        const datalist = document.getElementById("people-list");
+        if (datalist) {
+            datalist.innerHTML = "";
+            allNodesRegistry.forEach(item => {
+                const option = document.createElement("option");
+                option.value = `${item.person.name} (${item.person.dates})`;
+                datalist.appendChild(option);
+            });
+        }
+
+        function performSearch() {
+            const searchInput = document.getElementById("search-input");
+            if (!searchInput) return;
+            const query = searchInput.value.trim().toLowerCase();
+            if (!query) return;
+
+            d3.selectAll(".node-card").classed("highlight", false);
+
+            const match = allNodesRegistry.find(item => {
+                const fullName = item.person.name.toLowerCase();
+                const fullLabel = `${item.person.name} (${item.person.dates})`.toLowerCase();
+                return fullName.includes(query) || fullLabel.includes(query);
+            });
+
+            if (match) {
+                match.element.classed("highlight", true);
+
+                const targetScale = 1.2;
+                const targetX = width / 2 - (match.x + cardW / 2) * targetScale;
+                const targetY = height / 2 - (match.y + cardH / 2) * targetScale;
+
+                svg.transition()
+                    .duration(750)
+                    .call(
+                        zoom.transform,
+                        d3.zoomIdentity.translate(targetX, targetY).scale(targetScale)
+                    );
+
+                showDetail(match.person);
+            } else {
+                alert("Osoba se zadaným jménem nebyla v rodokmenu nalezena.");
+            }
+        }
+
+        const searchBtn = document.getElementById("search-btn");
+        if (searchBtn) searchBtn.onclick = performSearch;
+        
+        const searchInput = document.getElementById("search-input");
+        if (searchInput) {
+            searchInput.onkeypress = function(e) {
+                if (e.key === "Enter") performSearch();
+            };
+        }
+
+    }).catch(function(error) {
+        console.error("Chyba při načítání souboru data.json:", error);
+    });
+};
+
+// --- LOGIKA PŘEPÍNÁNÍ PODSTRÁNEK (INICIALIZACE PO NAČTENÍ DOM) ---
+document.addEventListener("DOMContentLoaded", function() {
     const navLinks = document.querySelectorAll(".nav-link");
     const sections = document.querySelectorAll(".page-section");
 
-    function showPage(targetId) {
-        // Skryje všechny sekce a odebere aktivní třídu z navigace
+    window.showPage = function(targetId) {
         sections.forEach(sec => sec.classList.remove("active"));
         navLinks.forEach(link => link.classList.remove("nav-active"));
 
-        // Najde cílovou sekci (pokud neexistuje, otevře 'uvod')
         const targetSection = document.getElementById(targetId) || document.getElementById("uvod");
-        targetSection.classList.add("active");
+        if (targetSection) {
+            targetSection.classList.add("active");
+        }
 
-        // Zvýrazní odpovídající tlačítko v navigaci
-        const activeLink = document.querySelector(`.nav-link[data-target="${targetSection.id}"]`);
+        const activeLink = document.querySelector(`.nav-link[data-target="${targetSection ? targetSection.id : 'uvod'}"]`);
         if (activeLink) activeLink.classList.add("nav-active");
 
-        // Pokud jsme přepnuli na rodokmen, inicializujeme/vykreslíme D3 strom
-        if (targetSection.id === "rodokmen" && window.renderTree) {
-            // Malé zpoždění zajistí, že kontejner má správně spočítané rozměry (width/height)
+        if (targetSection && targetSection.id === "rodokmen" && window.renderTree) {
             setTimeout(() => {
                 window.renderTree();
             }, 50);
         }
-    }
+    };
 
-    // Obsluha kliknutí na záložky v navigaci
     navLinks.forEach(link => {
         link.addEventListener("click", function(e) {
             e.preventDefault();
@@ -547,338 +854,29 @@
         });
     });
 
-    // Reakce na změnu Hash v URL (např. při použití tlačítka Zpět v prohlížeči)
     function handleHashChange() {
         const hash = window.location.hash.substring(1);
         showPage(hash || "uvod");
     }
 
     window.addEventListener("hashchange", handleHashChange);
-    
-    // Spuštění po načtení stránky
     handleHashChange();
 });
-            // --- LOGIKA D3 RODOKMENU ---
-            const cardW = 140;
-            const cardH = 65;
-            const gapX = 20;
-            const levelGapY = 170;
 
-            const container = d3.select("#tree-container");
-            if (container.empty()) return;
-
-            let allNodesRegistry = [];
-            let isTreeRendered = false;
-
-            window.renderTree = function() {
-                if (isTreeRendered) return;
-                
-                const width = container.node().clientWidth || 1000;
-                const height = 600;
-
-                container.html("");
-
-                const svg = container.append("svg")
-                    .attr("width", "100%")
-                    .attr("height", height);
-
-                const g = svg.append("g");
-
-                const zoom = d3.zoom()
-                    .scaleExtent([0.3, 2])
-                    .filter(event => !event.ctrlKey && event.type !== 'dblclick')
-                    .on("zoom", (event) => g.attr("transform", event.transform));
-                
-                svg.call(zoom);
-
-                d3.json("data.json").then(function(familyTreeData) {
-                    isTreeRendered = true;
-
-                    function calculateSubtreeWidth(node) {
-                        if (!node.children || node.children.length === 0) {
-                            node.subtreeWidth = node.spouse ? (cardW * 2 + 80) : cardW;
-                            return node.subtreeWidth;
-                        }
-
-                        let childrenTotalWidth = 0;
-                        node.children.forEach((child, i) => {
-                            childrenTotalWidth += calculateSubtreeWidth(child);
-                            if (i < node.children.length - 1) childrenTotalWidth += gapX;
-                        });
-
-                        const selfWidth = node.spouse ? (cardW * 2 + 80) : cardW;
-                        node.subtreeWidth = Math.max(selfWidth, childrenTotalWidth);
-                        return node.subtreeWidth;
-                    }
-
-                    function assignPositions(node, x, y) {
-                        node.y = y;
-
-                        if (!node.children || node.children.length === 0) {
-                            node.x = x + node.subtreeWidth / 2;
-                            return;
-                        }
-
-                        let currentX = x;
-                        node.children.forEach(child => {
-                            assignPositions(child, currentX, y + levelGapY);
-                            currentX += child.subtreeWidth + gapX;
-                        });
-
-                        const firstChild = node.children[0];
-                        const lastChild = node.children[node.children.length - 1];
-                        
-                        const firstChildCenter = firstChild.spouse ? (firstChild.x - 40 - cardW / 2) : firstChild.x;
-                        const lastChildCenter = lastChild.spouse ? (lastChild.x - 40 - cardW / 2) : lastChild.x;
-
-                        node.x = (firstChildCenter + lastChildCenter) / 2;
-                    }
-
-                    function renderNode(node) {
-                        const hasSpouse = !!node.spouse;
-                        const mainX = hasSpouse ? (node.x - 40 - cardW / 2) : (node.x - cardW / 2);
-                        const mainY = node.y;
-
-                        const mainCard = drawPersonCard(mainX, mainY, node);
-                        allNodesRegistry.push({ person: node, x: mainX, y: mainY, element: mainCard });
-
-                        let marriageCenterX = node.x;
-                        let marriageCenterY = mainY + cardH / 2;
-
-                        if (hasSpouse) {
-                            const spouseX = mainX + cardW + 80;
-                            marriageCenterX = mainX + cardW + 40;
-
-                            g.append("line")
-                                .attr("class", "link")
-                                .attr("x1", mainX + cardW)
-                                .attr("y1", marriageCenterY)
-                                .attr("x2", spouseX)
-                                .attr("y2", marriageCenterY);
-
-                            if (node.marriage) {
-                                const mG = g.append("g").attr("transform", `translate(${marriageCenterX}, ${marriageCenterY})`);
-                                mG.append("rect")
-                                    .attr("class", "marriage-badge")
-                                    .attr("x", -55).attr("y", -10)
-                                    .attr("width", 110).attr("height", 20);
-                                mG.append("text")
-                                    .attr("class", "marriage-text")
-                                    .attr("dy", 3)
-                                    .text(node.marriage);
-                            }
-
-                            const spouseCard = drawPersonCard(spouseX, mainY, node.spouse);
-                            allNodesRegistry.push({ person: node.spouse, x: spouseX, y: mainY, element: spouseCard });
-                        }
-
-                        if (node.children && node.children.length > 0) {
-                            const dropY = mainY + cardH + 30;
-
-                            g.append("line")
-                                .attr("class", "link")
-                                .attr("x1", marriageCenterX).attr("y1", hasSpouse ? marriageCenterY + 10 : mainY + cardH)
-                                .attr("x2", marriageCenterX).attr("y2", dropY);
-
-                            const childCenters = node.children.map(c => c.spouse ? (c.x - 40) : c.x);
-                            const minChildX = d3.min(childCenters);
-                            const maxChildX = d3.max(childCenters);
-
-                            g.append("line")
-                                .attr("class", "link")
-                                .attr("x1", minChildX).attr("y1", dropY)
-                                .attr("x2", maxChildX).attr("y2", dropY);
-
-                            node.children.forEach(child => {
-                                const childCenterX = child.spouse ? (child.x - 40) : child.x;
-                                g.append("line")
-                                    .attr("class", "link")
-                                    .attr("x1", childCenterX).attr("y1", dropY)
-                                    .attr("x2", childCenterX).attr("y2", child.y);
-
-                                renderNode(child);
-                            });
-                        }
-                    }
-
-                    function drawPersonCard(x, y, p) {
-                        const card = g.append("g")
-                            .attr("class", "node-group")
-                            .attr("transform", `translate(${x}, ${y})`);
-
-                        const rect = card.append("rect")
-                            .attr("class", "node-card")
-                            .attr("width", cardW)
-                            .attr("height", cardH);
-
-                        card.append("text")
-                            .attr("class", "node-title")
-                            .attr("x", cardW / 2).attr("y", 20)
-                            .text(p.name);
-
-                        card.append("text")
-                            .attr("class", "node-date")
-                            .attr("x", cardW / 2).attr("y", 37)
-                            .text(p.dates);
-
-                        if (p.death) {
-                            card.append("text")
-                                .attr("class", "node-date")
-                                .attr("x", cardW / 2).attr("y", 52)
-                                .text(p.death);
-                        }
-
-                        card.append("rect")
-                            .attr("width", cardW)
-                            .attr("height", cardH)
-                            .attr("fill", "transparent")
-                            .style("cursor", "pointer")
-                            .on("click", (event) => {
-                                event.stopPropagation();
-                                showDetail(p);
-                            });
-
-                        return rect;
-                    }
-
-                    function showDetail(person) {
-                        document.getElementById("detail-name").innerText = person.name;
-                        const content = document.getElementById("detail-content");
-                        content.innerHTML = "";
-
-                        const details = person.details || {};
-
-                        let html = "";
-                        if (details.birth) {
-                            html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${details.birth}</div>`;
-                        } else {
-                            html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${person.dates || 'neuvedeno'}</div>`;
-                        }
-
-                        if (details.death || person.death) {
-                            html += `<div class="detail-row"><span class="detail-label">Úmrtí:</span> ${details.death || person.death}</div>`;
-                        }
-
-                        if (details.occupation) {
-                            html += `<div class="detail-row"><span class="detail-label">Povolání:</span> ${details.occupation}</div>`;
-                        }
-
-                        if (details.note) {
-                            html += `<div class="detail-row"><span class="detail-label">Poznámka:</span> ${details.note}</div>`;
-                        }
-
-                        if (details.photo) {
-                            html += `
-                                <div style="text-align: center; margin-bottom: 15px;">
-                                    <img src="${details.photo}" alt="${person.name}" class="responsive-img" style="max-width: 100%; max-height: 180px; border-radius: 6px; object-fit: cover;">
-                                    </div>
-        `;
-               }
-                        if (details.link) {
-                            html += `<div class="detail-row" style="margin-top: 20px; text-align: center;">
-                                        <a href="${details.link}" onclick="openStory('${details.link}')" style="display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
-                                            &#128214; Přečíst si příběh
-                                        </a>
-                                    </div>`;
-                        }
-
-                        content.innerHTML = html;
-                        document.getElementById("person-detail-panel").classList.add("active");
-                    }
-
-                    window.closeDetail = function() {
-                        document.getElementById("person-detail-panel").classList.remove("active");
-                    };
-
-                    window.openStory = function(link) {
-                        closeDetail();
-                        showPage("pribehy");
-                        if (link.startsWith("#")) {
-                            setTimeout(() => {
-                                const targetEl = document.querySelector(link);
-                                if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
-                            }, 100);
-                        }
-                    };
-
-                    svg.on("click", window.closeDetail);
-
-                    calculateSubtreeWidth(familyTreeData);
-                    const startX = (width - familyTreeData.subtreeWidth) / 2;
-                    assignPositions(familyTreeData, startX, 40);
-                    renderNode(familyTreeData);
-
-                    svg.call(zoom.transform, d3.zoomIdentity.translate(25, 20).scale(0.75));
-
-                    // Vyhledávání
-                    const datalist = document.getElementById("people-list");
-                    datalist.innerHTML = "";
-                    allNodesRegistry.forEach(item => {
-                        const option = document.createElement("option");
-                        option.value = `${item.person.name} (${item.person.dates})`;
-                        datalist.appendChild(option);
-                    });
-
-                    function performSearch() {
-                        const query = document.getElementById("search-input").value.trim().toLowerCase();
-                        if (!query) return;
-
-                        d3.selectAll(".node-card").classed("highlight", false);
-
-                        const match = allNodesRegistry.find(item => {
-                            const fullName = item.person.name.toLowerCase();
-                            const fullLabel = `${item.person.name} (${item.person.dates})`.toLowerCase();
-                            return fullName.includes(query) || fullLabel.includes(query);
-                        });
-
-                        if (match) {
-                            match.element.classed("highlight", true);
-
-                            const targetScale = 1.2;
-                            const targetX = width / 2 - (match.x + cardW / 2) * targetScale;
-                            const targetY = height / 2 - (match.y + cardH / 2) * targetScale;
-
-                            svg.transition()
-                                .duration(750)
-                                .call(
-                                    zoom.transform,
-                                    d3.zoomIdentity.translate(targetX, targetY).scale(targetScale)
-                                );
-
-                            showDetail(match.person);
-                        } else {
-                            alert("Osoba se zadaným jním nebyla v rodokmenu nalezena.");
-                        }
-                    }
-
-                    document.getElementById("search-btn").onclick = performSearch;
-                    document.getElementById("search-input").onkeypress = function(e) {
-                        if (e.key === "Enter") performSearch();
-                    };
-
-                }).catch(function(error) {
-                    console.error("Chyba při načítání souboru data.json:", error);
-                });
-            };
-
-            handleHashChange();
-        });
-        // Funkce pro načtení a zobrazení článku v modal okně
+// --- LOGIKA PRO MODAL OKNO ČLÁNKŮ (FETCH) ---
 function loadStoryModal(filePath) {
     const modal = document.getElementById("story-modal");
     const modalContent = document.getElementById("modal-body-content");
 
-    // Nastavení indikátoru načítání
+    if (!modal || !modalContent) return;
+
     modalContent.innerHTML = '<p style="text-align: center; color: #777; padding: 30px 0;">Načítám článek...</p>';
     modal.classList.add("active");
-    document.body.style.overflow = "hidden"; // Zamezí rolování pozadí stránky pod modalem
+    document.body.style.overflow = "hidden";
 
-    // Načtení souboru pomocí JavaScript Fetch API
     fetch(filePath)
         .then(response => {
-            if (!response.ok) {
-                throw new Error("Soubor s článkem nebyl nalezen.");
-            }
+            if (!response.ok) throw new Error("Soubor s článkem nebyl nalezen.");
             return response.text();
         })
         .then(htmlData => {
@@ -895,23 +893,23 @@ function loadStoryModal(filePath) {
         });
 }
 
-// Funkce pro zavření modal okna
 function closeStoryModal(event) {
-    // Pokud bylo kliknuto přímo na tlačítko zavření nebo na tmavé pozadí mimo kartu
     if (!event || event.target.id === "story-modal" || event.target.classList.contains("modal-close-btn")) {
         const modal = document.getElementById("story-modal");
-        modal.classList.remove("active");
-        document.body.style.overflow = "auto"; // Obnoví rolování hlavní stránky
+        if (modal) {
+            modal.classList.remove("active");
+            document.body.style.overflow = "auto";
+        }
     }
 }
 
-// Zavření modalu pomocí klávesy ESC
 document.addEventListener("keydown", function(e) {
     if (e.key === "Escape") {
         closeStoryModal();
     }
 });
-    </script>
+</script>
+            
         <!-- Modal okno pro zobrazení detailu článku -->
 <div id="story-modal" class="modal-overlay" onclick="closeStoryModal(event)">
     <div class="modal-card">
