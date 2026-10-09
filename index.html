@@ -333,6 +333,14 @@
             font-size: 0.9em;
             color: #777;
         }
+
+        /*obrazky*/
+        .responsive-img {
+    max-width: 100%;    /* Obrázek se nikdy neroztáhne více, než je šířka jeho obalu */
+    height: auto;        /* Zachová poměr stran, fotka se nezdeformuje */
+    border-radius: 8px;  /* Volitelné: jemně zaoblené rohy */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Volitelné: jemný stín */
+}
     </style>
 </head>
 <body>
@@ -373,6 +381,7 @@
                     Jan se dožil na svou dobu mimořádného věku — zemřel 9. února 1799 ve věku úctyhodných 90 let. 
                     Společně se Zuzanou přivedli na svět sedm dětí a položili tak pevný základ celému rodu Faruzelů.
                 </p>
+                <img src="gruntovnice-jan.jpg" alt="Kup Jana Faruzela 1747" class="responsive-img">
             </article>
         </section>
 
