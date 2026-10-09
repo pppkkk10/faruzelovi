@@ -509,44 +509,55 @@
     </footer>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            
-            // --- LOGIKA PŘEPÍNÁNÍ PODSTRÁNEK ---
-            const navLinks = document.querySelectorAll(".nav-link");
-            const sections = document.querySelectorAll(".page-section");
+       document.addEventListener("DOMContentLoaded", function() {
 
-            function showPage(targetId) {
-                sections.forEach(sec => sec.classList.remove("active"));
-                navLinks.forEach(link => link.classList.remove("nav-active"));
+    // --- LOGIKA PŘEPÍNÁNÍ PODSTRÁNEK ---
+    const navLinks = document.querySelectorAll(".nav-link");
+    const sections = document.querySelectorAll(".page-section");
 
-                const targetSection = document.getElementById(targetId) || document.getElementById("uvod");
-                targetSection.classList.add("active");
+    function showPage(targetId) {
+        // Skryje všechny sekce a odebere aktivní třídu z navigace
+        sections.forEach(sec => sec.classList.remove("active"));
+        navLinks.forEach(link => link.classList.remove("nav-active"));
 
-                const activeLink = document.querySelector(`.nav-link[data-target="${targetSection.id}"]`);
-                if (activeLink) activeLink.classList.add("nav-active");
+        // Najde cílovou sekci (pokud neexistuje, otevře 'uvod')
+        const targetSection = document.getElementById(targetId) || document.getElementById("uvod");
+        targetSection.classList.add("active");
 
-                if (targetSection.id === "rodokmen" && window.renderTree) {
-                    window.renderTree();
-                }
-            }
+        // Zvýrazní odpovídající tlačítko v navigaci
+        const activeLink = document.querySelector(`.nav-link[data-target="${targetSection.id}"]`);
+        if (activeLink) activeLink.classList.add("nav-active");
 
-            navLinks.forEach(link => {
-                link.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    const target = this.getAttribute("data-target");
-                    window.location.hash = target;
-                    showPage(target);
-                });
-            });
+        // Pokud jsme přepnuli na rodokmen, inicializujeme/vykreslíme D3 strom
+        if (targetSection.id === "rodokmen" && window.renderTree) {
+            // Malé zpoždění zajistí, že kontejner má správně spočítané rozměry (width/height)
+            setTimeout(() => {
+                window.renderTree();
+            }, 50);
+        }
+    }
 
-            function handleHashChange() {
-                const hash = window.location.hash.substring(1);
-                showPage(hash || "uvod");
-            }
+    // Obsluha kliknutí na záložky v navigaci
+    navLinks.forEach(link => {
+        link.addEventListener("click", function(e) {
+            e.preventDefault();
+            const target = this.getAttribute("data-target");
+            window.location.hash = target;
+            showPage(target);
+        });
+    });
 
-            window.addEventListener("hashchange", handleHashChange);
+    // Reakce na změnu Hash v URL (např. při použití tlačítka Zpět v prohlížeči)
+    function handleHashChange() {
+        const hash = window.location.hash.substring(1);
+        showPage(hash || "uvod");
+    }
 
-
+    window.addEventListener("hashchange", handleHashChange);
+    
+    // Spuštění po načtení stránky
+    handleHashChange();
+});
             // --- LOGIKA D3 RODOKMENU ---
             const cardW = 140;
             const cardH = 65;
