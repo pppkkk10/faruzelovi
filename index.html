@@ -341,6 +341,63 @@
     border-radius: 8px;  /* Volitelné: jemně zaoblené rohy */
     box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Volitelné: jemný stín */
 }
+        /* Styling pro Modal okno (články) */
+.modal-overlay {
+    display: none; /* Výchozí stav: skryto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    backdrop-filter: blur(2px); /* Volitelné: jemné rozostření pozadí */
+}
+
+.modal-overlay.active {
+    display: flex; /* Zobrazí modal při přidání třídy active */
+}
+
+.modal-card {
+    background: var(--card-bg, #ffffff);
+    width: 100%;
+    max-width: 750px;
+    max-height: 85vh;
+    border-radius: 8px;
+    padding: 35px 30px 30px 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow-y: auto;
+    border-top: 5px solid var(--primary, #8b5a2b);
+    animation: fadeIn 0.25s ease-out;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    font-weight: bold;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.modal-close-btn:hover {
+    color: var(--primary, #8b5a2b);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
     </style>
 </head>
 <body>
@@ -368,22 +425,11 @@
         <section id="pribehy" class="page-section story-card">
             <h2>Příběhy & Paměti</h2>
 
-            <article id="pribeh-jan-1709" style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 20px;">
-                <h3 style="color: var(--primary); margin-bottom: 5px;">První známý předek: Jan Faruzel (* cca 1709 – † 1799)</h3>
-                <p style="font-size: 0.9em; color: #666; font-style: italic;">Místo původu: Vendryně / Těšínské knížectví</p>
-                
-                <p>
-                    Nejstarší písemně doložený předek našeho rodu, Jan Faruzel, se narodil kolem roku 1709. 
-                    Žil v pohnuté době 18. století na Těšínsku, kdy byla celá oblast pod správou habsburské monarchie. 
-                    Dne 5. května 1733 uzavřel v Těšíně sňatek se Zuzanou Folwarčnou z Mistřovic.
-                </p>
-                <p>
-                    Jan se dožil na svou dobu mimořádného věku — zemřel 9. února 1799 ve věku úctyhodných 90 let. 
-                    Společně se Zuzanou přivedli na svět sedm dětí a položili tak pevný základ celému rodu Faruzelů.
-                </p>
-                <img src="gruntovnice-jan.jpg" alt="Kup Jana Faruzela 1747" class="responsive-img">
-            </article>
-        </section>
+            <button onclick="loadStoryModal('pribehy/jan-faruzel-1709.html')" class="btn-submit">
+    Přečíst si celý příběh
+            </button>
+
+            
 
         <!-- Podstránka Rodokmen -->
         <section id="rodokmen" class="page-section story-card">
@@ -806,6 +852,64 @@
 
             handleHashChange();
         });
+        // Funkce pro načtení a zobrazení článku v modal okně
+function loadStoryModal(filePath) {
+    const modal = document.getElementById("story-modal");
+    const modalContent = document.getElementById("modal-body-content");
+
+    // Nastavení indikátoru načítání
+    modalContent.innerHTML = '<p style="text-align: center; color: #777; padding: 30px 0;">Načítám článek...</p>';
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden"; // Zamezí rolování pozadí stránky pod modalem
+
+    // Načtení souboru pomocí JavaScript Fetch API
+    fetch(filePath)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Soubor s článkem nebyl nalezen.");
+            }
+            return response.text();
+        })
+        .then(htmlData => {
+            modalContent.innerHTML = htmlData;
+        })
+        .catch(error => {
+            console.error("Chyba při načítání článku:", error);
+            modalContent.innerHTML = `
+                <div style="text-align: center; color: #d9534f; padding: 20px;">
+                    <h3>Článek se nepodařilo načíst</h3>
+                    <p>Zkontrolujte, zda soubor <code>${filePath}</code> existuje.</p>
+                </div>
+            `;
+        });
+}
+
+// Funkce pro zavření modal okna
+function closeStoryModal(event) {
+    // Pokud bylo kliknuto přímo na tlačítko zavření nebo na tmavé pozadí mimo kartu
+    if (!event || event.target.id === "story-modal" || event.target.classList.contains("modal-close-btn")) {
+        const modal = document.getElementById("story-modal");
+        modal.classList.remove("active");
+        document.body.style.overflow = "auto"; // Obnoví rolování hlavní stránky
+    }
+}
+
+// Zavření modalu pomocí klávesy ESC
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+        closeStoryModal();
+    }
+});
     </script>
+        <!-- Modal okno pro zobrazení detailu článku -->
+<div id="story-modal" class="modal-overlay" onclick="closeStoryModal(event)">
+    <div class="modal-card">
+        <button class="modal-close-btn" onclick="closeStoryModal()" title="Zavřít">&times;</button>
+        <div id="modal-body-content">
+            <!-- Sem se pomocí fetch načte obsah článku -->
+            <p style="text-align: center; color: #777;">Načítám článek...</p>
+        </div>
+    </div>
+</div>
 </body>
 </html>
