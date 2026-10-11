@@ -83,7 +83,13 @@
             margin-bottom: 30px;
             border-left: 4px solid var(--primary);
         }
-
+        /*zobrazovani obrazku*/
+        .responsive-img {
+    max-width: 100%;    /* Obrázek se nikdy neroztáhne více, než je šířka jeho obalu */
+    height: auto;        /* Zachová poměr stran, fotka se nezdeformuje */
+    border-radius: 8px;  /* Volitelné: jemně zaoblené rohy */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Volitelné: jemný stín */
+}
         /* Vyhledávací lišta */
         .search-bar {
             display: flex;
