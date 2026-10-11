@@ -37,18 +37,15 @@
       "name": "Zuzana Faruzel",
       "dates": "* 1736",
       "details": { "birth": "1736, Mistřovice" }
-      "spouse": {
-    "name": "Jerzy Kotas",
-    "dates": "* ?",
-    "death": "† ?",
-    "details": {
-      "birth": "Oldřichovice",
-      "death": " ",
-      "occupation": "zemědělec",
-      "note": "",
-      "link": ""
+       "spouse": {
+        "name": "Jerzy Kotas",
+        "dates": "* ",
+        "death": "† ",
+        "details": {
+          "birth": "Oldřichovice",
+          "death": ""
     },
-         "marriage": "28. 9. 1756 Těšín",
+         
     {
       "name": "Adam Faruzel",
       "dates": "* 1738",
