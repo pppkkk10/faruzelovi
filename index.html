@@ -682,6 +682,14 @@
 
                         const details = person.details || {};
 
+                        // 1. Zobrazení fotky (pokud je v jsonu zadaná)
+                            if (details.photo) {
+                            html += `
+                            <div style="text-align: center; margin-bottom: 15px;">
+                                <img src="${details.photo}" alt="${person.name}" class="responsive-img" style="max-width: 100%; max-height: 180px; border-radius: 6px; object-fit: cover;">
+                            </div>
+        `;
+    }
                         let html = "";
                         if (details.birth) {
                             html += `<div class="detail-row"><span class="detail-label">Narození:</span> ${details.birth}</div>`;
