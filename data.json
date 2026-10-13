@@ -137,6 +137,54 @@
                 "birth": "1808",
                 "death": "1812"
               }
+            },
+            {
+              "name": "Jiří Faruzel",
+              "dates": "* 1810",
+              "death": "†",
+              "details": {
+                "birth": "31.1.1810, Mistřovice 6",
+                "death": ""
+              }
+            },
+            {
+              "name": "Pavel Faruzel",
+              "dates": "* 1814",
+              "death": "† 1853",
+              "details": {
+                "birth": "2.3.1814, Mistřovice 6",
+                "death": "28.10.1853, Těšín"
+              }
+            },
+            {
+              "name": "Jan Faruzel",
+              "dates": "* 1820",
+              "death": "† 1886",
+              "details": {
+                "birth": "6.3.1820, Mistřovice 6",
+                "death": "2.3.1886, Mistřovice 36"
+              },
+              "spouse": {
+                "name": "Anna Kaleta",
+                "dates": "* 1823",
+                "death": "† 1890",
+                "details": {
+                  "birth": "29.1.1823, Vělopolí 7",
+                  "death": "29.6.1890, Mistřovice 36"
+                }
+              },
+              "marriage": "26. 8. 1841, Těšín",
+              "children": [
+                {
+                  "name": "Pavel Faruzel",
+                  "dates": "* 1842",
+                  "death": "† 1911",
+                  "details": {
+                    "birth": "26.11.1842, Mistřovice 6",
+                    "death": "10.5.1911"
+                  }
+                }
+              ]
             }
           ]
         }
@@ -160,3 +208,4 @@
     }
   ]
 }
+
