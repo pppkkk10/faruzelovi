@@ -1,6 +1,6 @@
 {
   "name": "Jan Faruzel",
-  "dates": "* cca 1709", 
+  "dates": "* cca 1709",
   "death": "† 1799",
   "details": {
     "birth": "cca 1709, Vendryně",
@@ -202,8 +202,8 @@
                         "birth": "9.1.1870, Podobora 57",
                         "death": ""
                       }
-                     }, 
-                      {
+                    },
+                    {
                       "name": "Marianna Faruzel",
                       "dates": "* 1872",
                       "death": "†",
@@ -220,8 +220,8 @@
                         "birth": "3.1.1875, Podobora 55",
                         "death": ""
                       }
-                      },
-                       {
+                    },
+                    {
                       "name": "Karoł Faruzel",
                       "dates": "* 1877",
                       "death": "†1956",
@@ -229,8 +229,8 @@
                         "birth": "22.3.1877, Podobora 57",
                         "death": ""
                       }
-                      },
-                       {
+                    },
+                    {
                       "name": "Adolf Faruzel",
                       "dates": "* 1879",
                       "death": "†1944",
@@ -238,8 +238,8 @@
                         "birth": "21.6.1879, Podobora 57",
                         "death": "4.12.1944 Mosty 24"
                       }
-                      },
-                       {
+                    },
+                    {
                       "name": "Katarina Faruzel",
                       "dates": "* 1885",
                       "death": "†1887",
@@ -247,32 +247,14 @@
                         "birth": "1885",
                         "death": "26.10.1887 Podobora 57"
                       }
-                      },
-                       {
+                    },
+                    {
                       "name": "Jan Faruzel",
                       "dates": "* 1889",
                       "death": "†1909",
                       "details": {
                         "birth": "24.6.1889, Podobora 3",
                         "death": "9.5.1909"
-                      }
-                      },
-                    {
-                      "name": "Anna Faruzel",
-                      "dates": "* 1846",
-                      "death": "†",
-                      "details": {
-                        "birth": "4.1.1846, Mistřovice 6",
-                        "death": ""
-                      }
-                    },
-                    {
-                      "name": "Jiří Faruzel",
-                      "dates": "* 1857",
-                      "death": "†",
-                      "details": {
-                        "birth": "10.4.1857, Mistřovice 36",
-                        "death": ""
                       }
                     }
                   ]
