@@ -182,7 +182,100 @@
                   "details": {
                     "birth": "26.11.1842, Mistřovice 6",
                     "death": "10.5.1911"
-                  }
+                  },
+                  "spouse": {
+                    "name": "Maria Wojnar",
+                    "dates": "* 1843",
+                    "death": "† 1912",
+                    "details": {
+                      "birth": "25.1.1843, Střítež 42",
+                      "death": "6.6.1912"
+                    }
+                  },
+                  "marriage": "29. 9. 1868, Těšín",
+                  "children": [
+                    {
+                      "name": "Pavel Faruzel",
+                      "dates": "* 1870",
+                      "death": "†",
+                      "details": {
+                        "birth": "9.1.1870, Podobora 57",
+                        "death": ""
+                      }
+                     }, 
+                      {
+                      "name": "Marianna Faruzel",
+                      "dates": "* 1872",
+                      "death": "†",
+                      "details": {
+                        "birth": "6.11.1872, Podobora 57",
+                        "death": ""
+                      }
+                    },
+                    {
+                      "name": "Jerzy Faruzel",
+                      "dates": "* 1875",
+                      "death": "†",
+                      "details": {
+                        "birth": "3.1.1875, Podobora 55",
+                        "death": ""
+                      }
+                      },
+                       {
+                      "name": "Karoł Faruzel",
+                      "dates": "* 1877",
+                      "death": "†1956",
+                      "details": {
+                        "birth": "22.3.1877, Podobora 57",
+                        "death": ""
+                      }
+                      },
+                       {
+                      "name": "Adolf Faruzel",
+                      "dates": "* 1879",
+                      "death": "†1944",
+                      "details": {
+                        "birth": "21.6.1879, Podobora 57",
+                        "death": "4.12.1944 Mosty 24"
+                      }
+                      },
+                       {
+                      "name": "Katarina Faruzel",
+                      "dates": "* 1885",
+                      "death": "†1887",
+                      "details": {
+                        "birth": "1885",
+                        "death": "26.10.1887 Podobora 57"
+                      }
+                      },
+                       {
+                      "name": "Jan Faruzel",
+                      "dates": "* 1889",
+                      "death": "†1909",
+                      "details": {
+                        "birth": "24.6.1889, Podobora 3",
+                        "death": "9.5.1909"
+                      }
+                      },
+                    {
+                      "name": "Anna Faruzel",
+                      "dates": "* 1846",
+                      "death": "†",
+                      "details": {
+                        "birth": "4.1.1846, Mistřovice 6",
+                        "death": ""
+                      }
+                    },
+                    {
+                      "name": "Jiří Faruzel",
+                      "dates": "* 1857",
+                      "death": "†",
+                      "details": {
+                        "birth": "10.4.1857, Mistřovice 36",
+                        "death": ""
+                      }
+                    }
+                  ]
                 }
               ]
             }
